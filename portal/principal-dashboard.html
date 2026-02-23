@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Principal Dashboard — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+
+        <div class="portal-wrapper">
+
+            <div class="sidebar">
+                <h2>🎓 Gazali</h2>
+                <p class="role-tag">Principal Portal</p>
+                <nav>
+                    <a href="#students">👨‍🎓 All Students</a>
+                    <a href="#teachers">👩‍🏫 All Teachers</a>
+                    <a href="#grades">📊 All Grades</a>
+                    <a href="#attendance">📋 Attendance</a>
+                    <a href="#adduser">➕ Add User</a>
+                    <a href="login.html">🚪 Logout</a>
+                </nav>
+            </div>
+
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>Welcome, Principal! 👋</h1>
+                    <p>Gazali International School</p>
+                </div>
+
+                <div class="section" id="students">
+                    <h2>👨‍🎓 All Students</h2>
+                    <div id="students-list">Loading...</div>
+                </div>
+
+                <div class="section" id="teachers">
+                    <h2>👩‍🏫 All Teachers</h2>
+                    <div id="teachers-list">Loading...</div>
+                </div>
+
+                <div class="section" id="grades">
+                    <h2>📊 All Grades</h2>
+                    <div id="grades-list">Loading...</div>
+                </div>
+
+                <div class="section" id="attendance">
+                    <h2>📋 Attendance Records</h2>
+                    <div id="attendance-list">Loading...</div>
+                </div>
+
+                <div class="section" id="adduser">
+                    <h2>➕ Add New User</h2>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="text" id="new-email" placeholder="e.g. student2@gazali.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="text" id="new-password" placeholder="e.g. student123">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="new-role">
+                            <option value="">-- Select Role --</option>
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="parent">Parent</option>
+                        </select>
+                    </div>
+                    <button onclick="addUser()" class="login-btn">Add User</button>
+                    <p id="adduser-msg"></p>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function loadDashboard() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                document.querySelector('.topbar h1').textContent = 'Welcome, Principal! 👋';
+
+                const { data: students } = await db
+                    .from('students')
+                    .select('*');
+
+                if (students && students.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th><th>Grade Level</th></tr></thead><tbody>';
+                    students.forEach(s => {
+                        html += `<tr>
+                            <td>${s.name}</td>
+                            <td>${s.class}</td>
+                            <td>${s.grade_level}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('students-list').innerHTML = html;
+                }
+
+                const { data: teachers } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('role', 'teacher');
+
+                if (teachers && teachers.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Email</th><th>Role</th></tr></thead><tbody>';
+                    teachers.forEach(t => {
+                        html += `<tr>
+                            <td>${t.email}</td>
+                            <td>${t.role}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('teachers-list').innerHTML = html;
+                }
+
+                const { data: grades } = await db
+                    .from('grades')
+                    .select('*');
+
+                if (grades && grades.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Subject</th><th>Score</th><th>Term</th></tr></thead><tbody>';
+                    grades.forEach(g => {
+                        html += `<tr>
+                            <td>${g.subject}</td>
+                            <td>${g.score}</td>
+                            <td>${g.term}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('grades-list').innerHTML = html;
+                }
+
+                const { data: attendance } = await db
+                    .from('attendance')
+                    .select('*');
+
+                if (attendance && attendance.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>';
+                    attendance.forEach(a => {
+                        html += `<tr>
+                            <td>${a.date}</td>
+                            <td>${a.status}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('attendance-list').innerHTML = html;
+                }
+            }
+
+            async function addUser() {
+                const email = document.getElementById('new-email').value;
+                const password = document.getElementById('new-password').value;
+                const role = document.getElementById('new-role').value;
+
+                if (!email || !password || !role) {
+                    document.getElementById('adduser-msg').textContent = '⚠️ Please fill in all fields!';
+                    return;
+                }
+
+                const { error } = await db.from('users').insert({
+                    email: email,
+                    password: password,
+                    role: role
+                });
+
+                if (error) {
+                    document.getElementById('adduser-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('adduser-msg').textContent = '✅ User added successfully!';
+                }
+            }
+
+            loadDashboard();
+        </script>
+
+    </body>
+</html>

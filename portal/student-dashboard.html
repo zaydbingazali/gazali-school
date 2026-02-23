@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Student Dashboard — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+
+        <div class="portal-wrapper">
+
+            <div class="sidebar">
+                <h2>🎓 Gazali</h2>
+                <p class="role-tag">Student Portal</p>
+                <nav>
+                    <a href="#grades">📊 Grades</a>
+                    <a href="#attendance">📋 Attendance</a>
+                    <a href="#timetable">🗓️ Timetable</a>
+                    <a href="login.html">🚪 Logout</a>
+                </nav>
+            </div>
+
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>Welcome, Student! 👋</h1>
+                    <p>Gazali International School</p>
+                </div>
+
+                <div class="section" id="grades">
+                    <h2>📊 My Grades</h2>
+                    <div class="grades-grid">
+                        <div class="grade-card">
+                            <h3>Mathematics</h3>
+                            <div class="grade-score">86%</div>
+                            <p>Grade A</p>
+                        </div>
+                        <div class="grade-card">
+                            <h3>English</h3>
+                            <div class="grade-score">91%</div>
+                            <p>Grade A+</p>
+                        </div>
+                        <div class="grade-card">
+                            <h3>Science</h3>
+                            <div class="grade-score">78%</div>
+                            <p>Grade B</p>
+                        </div>
+                        <div class="grade-card">
+                            <h3>Islamic Studies</h3>
+                            <div class="grade-score">95%</div>
+                            <p>Grade A+</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" id="attendance">
+                    <h2>📋 Attendance</h2>
+                    <div class="attendance-box">
+                        <div class="att-stat green">
+                            <h3>46</h3>
+                            <p>Days Present</p>
+                        </div>
+                        <div class="att-stat red">
+                            <h3>3</h3>
+                            <p>Days Absent</p>
+                        </div>
+                        <div class="att-stat orange">
+                            <h3>1</h3>
+                            <p>Days Late</p>
+                        </div>
+                        <div class="att-stat blue">
+                            <h3>92%</h3>
+                            <p>Attendance Rate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" id="timetable">
+                    <h2>🗓️ My Timetable</h2>
+                    <table class="timetable">
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>8:00 AM</th>
+                                <th>9:00 AM</th>
+                                <th>10:00 AM</th>
+                                <th>11:00 AM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Sunday</td>
+                                <td>Mathematics</td>
+                                <td>English</td>
+                                <td>Science</td>
+                                <td>Islamic Studies</td>
+                            </tr>
+                            <tr>
+                                <td>Monday</td>
+                                <td>English</td>
+                                <td>Mathematics</td>
+                                <td>Islamic Studies</td>
+                                <td>Science</td>
+                            </tr>
+                            <tr>
+                                <td>Tuesday</td>
+                                <td>Science</td>
+                                <td>Islamic Studies</td>
+                                <td>Mathematics</td>
+                                <td>English</td>
+                            </tr>
+                            <tr>
+                                <td>Wednesday</td>
+                                <td>Islamic Studies</td>
+                                <td>Science</td>
+                                <td>English</td>
+                                <td>Mathematics</td>
+                            </tr>
+                            <tr>
+                                <td>Thursday</td>
+                                <td>Mathematics</td>
+                                <td>English</td>
+                                <td>Science</td>
+                                <td>Islamic Studies</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function loadDashboard() {
+            const user = JSON.parse(localStorage.getItem('user'));
+
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.querySelector('.topbar h1').textContent = 'Welcome, ' + user.email + '! 👋';
+
+            const { data: grades, error } = await db
+                .from('grades')
+                .select('*')
+                .eq('student_id', user.id);
+
+            if (grades && grades.length > 0) {
+                let gradesHTML = '';
+                grades.forEach(grade => {
+                    gradesHTML += `
+                        <div class="grade-card">
+                            <h3>${grade.subject}</h3>
+                            <div class="grade-score">${grade.score}%</div>
+                            <p>Term ${grade.term}</p>
+                        </div>`;
+                });
+                document.querySelector('.grades-grid').innerHTML = gradesHTML;
+            }
+        }
+
+        loadDashboard();
+    </script>
+
+</body>
+</html>
+
+    </body>
+</html>

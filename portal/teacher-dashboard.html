@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Teacher Dashboard — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+
+        <div class="portal-wrapper">
+
+            <div class="sidebar">
+                <h2>🎓 Gazali</h2>
+                <p class="role-tag">Teacher Portal</p>
+                <nav>
+                    <a href="#students">👨‍🎓 My Students</a>
+                    <a href="#grades">📝 Enter Grades</a>
+                    <a href="#attendance">✅ Attendance</a>
+                    <a href="login.html">🚪 Logout</a>
+                </nav>
+            </div>
+
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>Welcome, Teacher! 👋</h1>
+                    <p>Gazali International School</p>
+                </div>
+
+                <div class="section" id="students">
+                    <h2>👨‍🎓 My Students</h2>
+                    <div id="students-list">Loading...</div>
+                </div>
+
+                <div class="section" id="grades">
+                    <h2>📝 Enter Grade</h2>
+                    <div class="form-group">
+                        <label>Select Student</label>
+                        <select id="grade-student-id">
+                         <option value="">-- Select Student --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select id="grade-subject">
+                            <option value="">-- Select Subject --</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="English">English</option>
+                            <option value="Science">Science</option>
+                            <option value="Islamic Studies">Islamic Studies</option>
+                            <option value="Arabic">Arabic</option>
+                            <option value="History">History</option>
+                            <option value="Geography">Geography</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Score</label>
+                        <input type="number" id="grade-score" placeholder="e.g. 85">
+                    </div>
+                    <div class="form-group">
+                        <label>Term</label>
+                        <input type="text" id="grade-term" placeholder="e.g. 1">
+                    </div>
+                    <button onclick="enterGrade()" class="login-btn">Submit Grade</button>
+                    <p id="grade-msg"></p>
+                </div>
+
+                <div class="section" id="attendance">
+                    <h2>✅ Mark Attendance</h2>
+                    <div id="attendance-list">Loading...</div>
+                </div>
+
+                <p id="attendance-msg"></p>
+
+            </div>
+        </div>
+
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function loadDashboard() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                document.querySelector('.topbar h1').textContent = 'Welcome, ' + user.email + '! 👋';
+
+                const { data: students } = await db
+                    .from('students')
+                    .select('*');
+
+                if (students && students.length > 0) {
+    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th><th>Grade Level</th></tr></thead><tbody>';
+    students.forEach(s => {
+        html += `<tr>
+            <td>${s.name}</td>
+            <td>${s.class}</td>
+            <td>${s.grade_level}</td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('students-list').innerHTML = html;
+
+    let dropdown = document.getElementById('grade-student-id');
+    students.forEach(s => {
+        dropdown.innerHTML += `<option value="${s.user_id}">${s.name}</option>`;
+    });
+
+                    let attendHTML = '<table class="timetable"><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>';
+                    students.forEach(s => {
+                        attendHTML += `<tr>
+                            <td>${s.name}</td>
+                            <td>
+                                <button onclick="markAttendance('${s.user_id}', 'present')" class="att-btn present-btn">✅ Present</button>
+                                <button onclick="markAttendance('${s.user_id}', 'absent')" class="att-btn absent-btn">❌ Absent</button>
+                                <button onclick="markAttendance('${s.user_id}', 'late')" class="att-btn late-btn">🕐 Late</button>
+                            </td>
+                        </tr>`;
+                    });
+                    attendHTML += '</tbody></table>';
+                    document.getElementById('attendance-list').innerHTML = attendHTML;
+                }
+            }
+
+            async function enterGrade() {
+                const studentId = document.getElementById('grade-student-id').value;
+                const subject = document.getElementById('grade-subject').value;
+                const score = document.getElementById('grade-score').value;
+                const term = document.getElementById('grade-term').value;
+
+                if (!studentId || !subject || !score || !term) {
+                    document.getElementById('grade-msg').textContent = '⚠️ Please fill in all fields!';
+                    return;
+                }
+
+                const { error } = await db.from('grades').insert({
+                    student_id: studentId,
+                    subject: subject,
+                    score: parseInt(score),
+                    term: term
+                });
+
+                if (error) {
+                    document.getElementById('grade-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('grade-msg').textContent = '✅ Grade submitted successfully!';
+                }
+            }
+
+            async function markAttendance(studentId, status) {
+                const today = new Date().toISOString().split('T')[0];
+
+                const { error } = await db.from('attendance').insert({
+                    student_id: studentId,
+                    date: today,
+                    status: status
+                });
+if (error) {
+    document.getElementById('attendance-msg').textContent = '❌ Error: ' + error.message;
+} else {
+    document.getElementById('attendance-msg').textContent = '✅ Attendance marked as ' + status + '!';
+}
+            }
+
+            loadDashboard();
+        </script>
+
+    </body>
+</html>
