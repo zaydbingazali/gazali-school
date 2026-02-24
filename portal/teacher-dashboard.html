@@ -178,47 +178,39 @@ if (error) {
         return;
     }
 
-    const fileName = Date.now() + '_' + file.name;
-    const { data, error } = await db.storage
-        .from('files')
-        .upload(fileName, file);
+    document.getElementById('upload-msg').textContent = '⏳ Uploading...';
 
-    if (error) {
-        document.getElementById('upload-msg').textContent = '❌ Upload failed: ' + error.message;
+    const fileName = Date.now() + '_' + file.name;
+
+    const { data: storageData, error: storageError } = await db.storage
+        .from('files')
+        .upload(fileName, file, { upsert: true });
+
+    if (storageError) {
+        document.getElementById('upload-msg').textContent = '❌ Storage error: ' + storageError.message;
         return;
     }
 
-    const { data: urlData } = db.storage.from('files').getPublicUrl(fileName);
+    const { data: urlData } = db.storage
+        .from('files')
+        .getPublicUrl(fileName);
 
-    await db.from('files').insert({
+    const { error: dbError } = await db.from('files').insert({
         name: file.name,
         type: fileType,
         url: urlData.publicUrl,
         uploaded_by: user.id
     });
 
-    document.getElementById('upload-msg').textContent = '✅ File uploaded successfully!';
-}
-        </script>
+    if (dbError) {
+        document.getElementById('upload-msg').textContent = '❌ Database error: ' + dbError.message;
+        return;
+    }
 
-        <div class="section" id="upload">
-    <h2>📁 Upload Files</h2>
-    <div class="form-group">
-        <label>File Type</label>
-        <select id="file-type">
-            <option value="classwork">Classwork</option>
-            <option value="homework">Homework</option>
-            <option value="assignments">Assignments</option>
-            <option value="circular">Circular</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label>Select File</label>
-        <input type="file" id="file-input">
-    </div>
-    <button onclick="uploadFile()" class="login-btn">Upload</button>
-    <p id="upload-msg"></p>
-</div>
+    document.getElementById('upload-msg').textContent = '✅ File uploaded successfully!';
+    document.getElementById('file-input').value = '';
+}
+</script>
 
     </body>
 </html>
