@@ -249,3 +249,111 @@ body {
 .timetable tr:hover td {
     background-color: #f0f4ff;
 }
+
+.att-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+.present-btn { background-color: rgba(0,201,167,0.15); color: #00a88a; }
+.absent-btn { background-color: rgba(224,92,122,0.15); color: #c4415e; }
+.late-btn { background-color: rgba(247,168,79,0.15); color: #d4851a; }
+
+.subject-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.subject-card {
+    background: linear-gradient(135deg, #1a2744, #4f8ef7);
+    color: white;
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-width: 160px;
+    flex: 1;
+}
+
+.subject-name {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.subject-score {
+    font-size: 24px;
+    font-weight: 800;
+    font-family: monospace;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.calendar-header {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a2744;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+}
+
+.cal-day-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #999;
+    padding: 4px;
+}
+
+.cal-day {
+    font-size: 13px;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.cal-day:hover { background: #f0f4ff; }
+.cal-day.today {
+    background: #1a2744;
+    color: white;
+    font-weight: 700;
+    border-radius: 50%;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 13px;
+    margin-bottom: 4px;
+    transition: all 0.2s;
+}
+
+.nav-item:hover, .nav-item.active {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.nav-item.logout { margin-top: 20px; color: rgba(255,100,100,0.8); }
+.nav-item.logout:hover { background: rgba(255,100,100,0.1); color: #ff6464; }

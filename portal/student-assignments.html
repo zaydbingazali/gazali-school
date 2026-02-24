@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Assignments — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Student Portal</p>
+                </div>
+                <nav>
+                    <a href="student-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="student-profile.html" class="nav-item">👤 Profile</a>
+                    <a href="student-classwork.html" class="nav-item active">📖 Assignments</a>
+                    <a href="student-homework.html" class="nav-item">📝 Homework</a>
+                    <a href="student-assignments.html" class="nav-item">📋 Assignments</a>
+                    <a href="student-grades.html" class="nav-item">📊 Grades</a>
+                    <a href="student-attendance.html" class="nav-item">✅ Attendance</a>
+                    <a href="student-timetable.html" class="nav-item">🗓️ Timetable</a>
+                    <a href="student-circulars.html" class="nav-item">📢 Circulars</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>📖 Assignments</h1>
+                    <p>Gazali International School</p>
+                </div>
+                <div class="section">
+                    <div id="files-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            async function loadFiles() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                const { data: files } = await db
+                    .from('files')
+                    .select('*')
+                    .eq('type', 'circular')
+                    .order('created_at', { ascending: false });
+
+                if (files && files.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>File Name</th><th>Date</th><th>Download</th></tr></thead><tbody>';
+                    files.forEach(f => {
+                        html += `<tr>
+                            <td>${f.name}</td>
+                            <td>${new Date(f.created_at).toLocaleDateString()}</td>
+                            <td><a href="${f.url}" target="_blank" class="btn" style="padding:6px 14px;font-size:12px">⬇ Download</a></td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('files-list').innerHTML = html;
+                } else {
+                    document.getElementById('files-list').innerHTML = '<p>No assignment uploaded yet.</p>';
+                }
+            }
+            loadFiles();
+        </script>
+    </body>
+</html>

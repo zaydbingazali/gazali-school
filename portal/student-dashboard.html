@@ -7,171 +7,96 @@
         <script src="config.js"></script>
     </head>
     <body>
-
         <div class="portal-wrapper">
-
             <div class="sidebar">
-                <h2>🎓 Gazali</h2>
-                <p class="role-tag">Student Portal</p>
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Student Portal</p>
+                </div>
                 <nav>
-                    <a href="#grades">📊 Grades</a>
-                    <a href="#attendance">📋 Attendance</a>
-                    <a href="#timetable">🗓️ Timetable</a>
-                    <a href="login.html">🚪 Logout</a>
+                    <a href="student-dashboard.html" class="nav-item active">🏠 Dashboard</a>
+                    <a href="student-profile.html" class="nav-item">👤 Profile</a>
+                    <a href="student-classwork.html" class="nav-item">📖 Classwork</a>
+                    <a href="student-homework.html" class="nav-item">📝 Homework</a>
+                    <a href="student-assignments.html" class="nav-item">📋 Assignments</a>
+                    <a href="student-grades.html" class="nav-item">📊 Grades</a>
+                    <a href="student-attendance.html" class="nav-item">✅ Attendance</a>
+                    <a href="student-timetable.html" class="nav-item">🗓️ Timetable</a>
+                    <a href="student-circulars.html" class="nav-item">📢 Circulars</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
                 </nav>
             </div>
-
             <div class="main-content">
                 <div class="topbar">
-                    <h1>Welcome, Student! 👋</h1>
+                    <h1 id="welcome-msg">Welcome! 👋</h1>
                     <p>Gazali International School</p>
                 </div>
-
-                <div class="section" id="grades">
-                    <h2>📊 My Grades</h2>
-                    <div class="grades-grid">
-                        <div class="grade-card">
-                            <h3>Mathematics</h3>
-                            <div class="grade-score">86%</div>
-                            <p>Grade A</p>
-                        </div>
-                        <div class="grade-card">
-                            <h3>English</h3>
-                            <div class="grade-score">91%</div>
-                            <p>Grade A+</p>
-                        </div>
-                        <div class="grade-card">
-                            <h3>Science</h3>
-                            <div class="grade-score">78%</div>
-                            <p>Grade B</p>
-                        </div>
-                        <div class="grade-card">
-                            <h3>Islamic Studies</h3>
-                            <div class="grade-score">95%</div>
-                            <p>Grade A+</p>
-                        </div>
+                <div class="subject-cards" id="subject-cards">Loading grades...</div>
+                <div class="dashboard-grid">
+                    <div class="section">
+                        <h2>📅 Calendar</h2>
+                        <div id="calendar"></div>
+                    </div>
+                    <div class="section">
+                        <h2>📢 Upcoming Events</h2>
+                        <div id="events-list">No upcoming events.</div>
                     </div>
                 </div>
-
-                <div class="section" id="attendance">
-                    <h2>📋 Attendance</h2>
-                    <div class="attendance-box">
-                        <div class="att-stat green">
-                            <h3>46</h3>
-                            <p>Days Present</p>
-                        </div>
-                        <div class="att-stat red">
-                            <h3>3</h3>
-                            <p>Days Absent</p>
-                        </div>
-                        <div class="att-stat orange">
-                            <h3>1</h3>
-                            <p>Days Late</p>
-                        </div>
-                        <div class="att-stat blue">
-                            <h3>92%</h3>
-                            <p>Attendance Rate</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section" id="timetable">
-                    <h2>🗓️ My Timetable</h2>
-                    <table class="timetable">
-                        <thead>
-                            <tr>
-                                <th>Day</th>
-                                <th>8:00 AM</th>
-                                <th>9:00 AM</th>
-                                <th>10:00 AM</th>
-                                <th>11:00 AM</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Sunday</td>
-                                <td>Mathematics</td>
-                                <td>English</td>
-                                <td>Science</td>
-                                <td>Islamic Studies</td>
-                            </tr>
-                            <tr>
-                                <td>Monday</td>
-                                <td>English</td>
-                                <td>Mathematics</td>
-                                <td>Islamic Studies</td>
-                                <td>Science</td>
-                            </tr>
-                            <tr>
-                                <td>Tuesday</td>
-                                <td>Science</td>
-                                <td>Islamic Studies</td>
-                                <td>Mathematics</td>
-                                <td>English</td>
-                            </tr>
-                            <tr>
-                                <td>Wednesday</td>
-                                <td>Islamic Studies</td>
-                                <td>Science</td>
-                                <td>English</td>
-                                <td>Mathematics</td>
-                            </tr>
-                            <tr>
-                                <td>Thursday</td>
-                                <td>Mathematics</td>
-                                <td>English</td>
-                                <td>Science</td>
-                                <td>Islamic Studies</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
             </div>
         </div>
 
-        </div>
-    </div>
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
-    <script>
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            async function loadDashboard() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
 
-        async function loadDashboard() {
-            const user = JSON.parse(localStorage.getItem('user'));
+                document.getElementById('welcome-msg').textContent = 'Welcome, ' + user.email + '! 👋';
 
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
+                const { data: grades } = await db
+                    .from('grades')
+                    .select('*')
+                    .eq('student_id', user.id);
 
-            document.querySelector('.topbar h1').textContent = 'Welcome, ' + user.email + '! 👋';
-
-            const { data: grades, error } = await db
-                .from('grades')
-                .select('*')
-                .eq('student_id', user.id);
-
-            if (grades && grades.length > 0) {
-                let gradesHTML = '';
-                grades.forEach(grade => {
-                    gradesHTML += `
-                        <div class="grade-card">
-                            <h3>${grade.subject}</h3>
-                            <div class="grade-score">${grade.score}%</div>
-                            <p>Term ${grade.term}</p>
+                if (grades && grades.length > 0) {
+                    let html = '';
+                    grades.forEach(g => {
+                        html += `<div class="subject-card">
+                            <span class="subject-name">${g.subject}</span>
+                            <span class="subject-score">${g.score}</span>
                         </div>`;
-                });
-                document.querySelector('.grades-grid').innerHTML = gradesHTML;
+                    });
+                    document.getElementById('subject-cards').innerHTML = html;
+                } else {
+                    document.getElementById('subject-cards').innerHTML = '<p>No grades yet.</p>';
+                }
+
+                renderCalendar();
             }
-        }
 
-        loadDashboard();
-    </script>
+            function renderCalendar() {
+                const now = new Date();
+                const month = now.toLocaleString('default', { month: 'long' });
+                const year = now.getFullYear();
+                const daysInMonth = new Date(year, now.getMonth() + 1, 0).getDate();
+                const firstDay = new Date(year, now.getMonth(), 1).getDay();
 
-</body>
-</html>
+                let html = `<div class="calendar-header">${month} ${year}</div>`;
+                html += '<div class="calendar-grid">';
+                ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+                    html += `<div class="cal-day-name">${d}</div>`;
+                });
+                for (let i = 0; i < firstDay; i++) html += '<div></div>';
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const isToday = d === now.getDate();
+                    html += `<div class="cal-day ${isToday ? 'today' : ''}">${d}</div>`;
+                }
+                html += '</div>';
+                document.getElementById('calendar').innerHTML = html;
+            }
 
+            loadDashboard();
+        </script>
     </body>
 </html>
