@@ -5,6 +5,7 @@
         <link rel="stylesheet" href="portal.css">
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script src="config.js"></script>
+        <a href="student-fees.html" class="nav-item">💰 Fees</a>
     </head>
     <body>
         <div class="portal-wrapper">
@@ -113,27 +114,63 @@
             }
 
             function downloadReceipt(term, amount) {
-                const user = JSON.parse(localStorage.getItem('user'));
-                const receiptContent = `
-GAZALI INTERNATIONAL SCHOOL
-Fee Receipt
-========================
-Student: ${user.email}
-Term: ${term}
-Amount Paid: ₹${amount.toLocaleString()}
-Date: ${new Date().toLocaleDateString()}
-Status: PAID
-========================
-Thank you for your payment!
-                `;
+    const user = JSON.parse(localStorage.getItem('user'));
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-                const blob = new Blob([receiptContent], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `receipt_${term}.txt`;
-                a.click();
-            }
+    doc.setFillColor(26, 39, 68);
+    doc.rect(0, 0, 210, 40, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Gazali International School', 105, 18, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Fee Payment Receipt', 105, 30, { align: 'center' });
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
+
+    const startY = 60;
+    const lineH = 10;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Receipt Details', 20, startY);
+    doc.setLineWidth(0.5);
+    doc.line(20, startY + 2, 190, startY + 2);
+
+    doc.setFont('helvetica', 'normal');
+    const details = [
+        ['Student Email:', user.email],
+        ['Term:', term],
+        ['Amount Paid:', '₹' + amount.toLocaleString()],
+        ['Payment Date:', new Date().toLocaleDateString()],
+        ['Payment Status:', 'PAID'],
+        ['Receipt No.:', 'GIS-' + Date.now()],
+    ];
+
+    details.forEach((d, i) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(d[0], 20, startY + 15 + (i * lineH));
+        doc.setFont('helvetica', 'normal');
+        doc.text(d[1], 90, startY + 15 + (i * lineH));
+    });
+
+    doc.setFillColor(240, 244, 255);
+    doc.rect(20, startY + 75, 170, 15, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(26, 39, 68);
+    doc.text('Total Amount Paid: ₹' + amount.toLocaleString(), 105, startY + 85, { align: 'center' });
+
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('This is a computer generated receipt and does not require a signature.', 105, 270, { align: 'center' });
+    doc.text('Gazali International School © 2026', 105, 278, { align: 'center' });
+
+    doc.save('Receipt_' + term + '.pdf');
+}
 
             loadFees();
         </script>
