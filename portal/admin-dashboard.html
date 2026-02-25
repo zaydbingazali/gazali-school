@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Admin Dashboard — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Admin Portal</p>
+                </div>
+                <nav>
+                    <a href="#students" class="nav-item active">👨‍🎓 All Students</a>
+                    <a href="#fees" class="nav-item">💰 Manage Fees</a>
+                    <a href="#attendance" class="nav-item">📋 Attendance</a>
+                    <a href="#circulars" class="nav-item">📢 Upload Circulars</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>Welcome, Admin! 👋</h1>
+                    <p>Gazali International School</p>
+                </div>
+
+                <div class="section" id="students">
+                    <h2>👨‍🎓 All Students</h2>
+                    <div id="students-list">Loading...</div>
+                </div>
+
+                <div class="section" id="fees">
+                    <h2>💰 Manage Fees</h2>
+                    <div id="fees-list">Loading...</div>
+                </div>
+
+                <div class="section" id="attendance">
+                    <h2>📋 Attendance Report</h2>
+                    <div id="attendance-list">Loading...</div>
+                </div>
+
+                <div class="section" id="circulars">
+                    <h2>📢 Upload Circular</h2>
+                    <div class="form-group">
+                        <label>Select File</label>
+                        <input type="file" id="circular-file">
+                    </div>
+                    <button onclick="uploadCircular()" class="login-btn">Upload Circular</button>
+                    <p id="circular-msg"></p>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function loadDashboard() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                document.querySelector('.topbar h1').textContent = 'Welcome, Admin! 👋';
+
+                const { data: students } = await db
+                    .from('students')
+                    .select('*');
+
+                if (students && students.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th><th>Grade Level</th></tr></thead><tbody>';
+                    students.forEach(s => {
+                        html += `<tr>
+                            <td>${s.name || '—'}</td>
+                            <td>${s.class || '—'}</td>
+                            <td>${s.grade_level || '—'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('students-list').innerHTML = html;
+                } else {
+                    document.getElementById('students-list').innerHTML = '<p>No students found.</p>';
+                }
+
+                const { data: fees } = await db
+                    .from('fees')
+                    .select('*');
+
+                if (fees && fees.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Student ID</th><th>Term</th><th>Amount</th><th>Paid</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+                    fees.forEach(f => {
+                        const statusColor = f.status === 'paid' ? '#00c9a7' : f.status === 'partial' ? '#f7a84f' : '#e05c7a';
+                        html += `<tr>
+                            <td style="font-size:11px;color:#999">${f.student_id}</td>
+                            <td>${f.term}</td>
+                            <td>₹${f.amount.toLocaleString()}</td>
+                            <td>₹${f.paid.toLocaleString()}</td>
+                            <td><span style="background:${statusColor}22;color:${statusColor};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:capitalize">${f.status}</span></td>
+                            <td>${f.status !== 'paid' ? `<button onclick='markPaid("${f.id}", ${f.amount})' style="padding:5px 12px;border-radius:6px;border:none;background:#00c9a7;color:white;cursor:pointer;font-size:12px">✅ Mark Paid</button>` : '—'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('fees-list').innerHTML = html;
+                } else {
+                    document.getElementById('fees-list').innerHTML = '<p>No fee records found.</p>';
+                }
+
+                const { data: attendance } = await db
+                    .from('attendance')
+                    .select('*')
+                    .order('date', { ascending: false });
+
+                if (attendance && attendance.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Student ID</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+                    attendance.forEach(a => {
+                        const color = a.status === 'present' ? '#00c9a7' : a.status === 'absent' ? '#e05c7a' : '#f7a84f';
+                        html += `<tr>
+                            <td style="font-size:11px;color:#999">${a.student_id}</td>
+                            <td>${a.date}</td>
+                            <td style="color:${color};font-weight:700;text-transform:capitalize">${a.status}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('attendance-list').innerHTML = html;
+                } else {
+                    document.getElementById('attendance-list').innerHTML = '<p>No attendance records yet.</p>';
+                }
+            }
+
+            async function markPaid(feeId, amount) {
+                const { error } = await db
+                    .from('fees')
+                    .update({ paid: amount, status: 'paid' })
+                    .eq('id', feeId);
+
+                if (error) {
+                    alert('Error: ' + error.message);
+                } else {
+                    alert('✅ Fee marked as paid!');
+                    loadDashboard();
+                }
+            }
+
+            async function uploadCircular() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const fileInput = document.getElementById('circular-file');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    document.getElementById('circular-msg').textContent = '⚠️ Please select a file!';
+                    return;
+                }
+
+                document.getElementById('circular-msg').textContent = '⏳ Uploading...';
+
+                const fileName = Date.now() + '_' + file.name;
+                const { error: storageError } = await db.storage
+                    .from('files')
+                    .upload(fileName, file, { upsert: true });
+
+                if (storageError) {
+                    document.getElementById('circular-msg').textContent = '❌ Error: ' + storageError.message;
+                    return;
+                }
+
+                const { data: urlData } = db.storage
+                    .from('files')
+                    .getPublicUrl(fileName);
+
+                await db.from('files').insert({
+                    name: file.name,
+                    type: 'circular',
+                    url: urlData.publicUrl,
+                    uploaded_by: user.id
+                });
+
+                document.getElementById('circular-msg').textContent = '✅ Circular uploaded!';
+                fileInput.value = '';
+            }
+
+            loadDashboard();
+        </script>
+    </body>
+</html>
