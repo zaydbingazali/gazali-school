@@ -31,29 +31,62 @@
                     <h1>👤 My Profile</h1>
                     <p>Gazali International School</p>
                 </div>
+
                 <div class="section">
-                    <div class="profile-card">
-                        <div class="profile-avatar">👤</div>
-                        <div class="profile-info">
-                            <table class="grades-table">
-                                <tr><td><b>Name</b></td><td id="p-name">—</td></tr>
-                                <tr><td><b>Email</b></td><td id="p-email">—</td></tr>
-                                <tr><td><b>Registration No.</b></td><td id="p-regno">—</td></tr>
-                                <tr><td><b>Date of Birth</b></td><td id="p-dob">—</td></tr>
-                                <tr><td><b>National ID</b></td><td id="p-natid">—</td></tr>
-                                <tr><td><b>Class</b></td><td id="p-class">—</td></tr>
-                                <tr><td><b>Grade Level</b></td><td id="p-grade">—</td></tr>
-                            </table>
+                    <div id="view-mode">
+                        <div class="profile-card">
+                            <div class="profile-avatar">👤</div>
+                            <div class="profile-info">
+                                <table class="timetable">
+                                    <tr><td><b>Name</b></td><td id="p-name">—</td></tr>
+                                    <tr><td><b>Email</b></td><td id="p-email">—</td></tr>
+                                    <tr><td><b>Registration No.</b></td><td id="p-regno">—</td></tr>
+                                    <tr><td><b>Date of Birth</b></td><td id="p-dob">—</td></tr>
+                                    <tr><td><b>National ID</b></td><td id="p-natid">—</td></tr>
+                                    <tr><td><b>Class</b></td><td id="p-class">—</td></tr>
+                                    <tr><td><b>Grade Level</b></td><td id="p-grade">—</td></tr>
+                                </table>
+                                <button onclick="showEditMode()" class="login-btn" style="margin-top:20px;width:auto;padding:10px 24px">✏️ Edit Profile</button>
+                            </div>
                         </div>
+                    </div>
+
+                    <div id="edit-mode" style="display:none">
+                        <h2 style="margin-bottom:20px">✏️ Edit Profile</h2>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="edit-name" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <input type="date" id="edit-dob">
+                        </div>
+                        <div class="form-group">
+                            <label>National ID (Aadhar No.)</label>
+                            <input type="text" id="edit-natid" placeholder="Enter your national ID">
+                        </div>
+                        <div class="form-group">
+                            <label>Registration Number</label>
+                            <input type="text" id="edit-regno" placeholder="Enter your registration number">
+                        </div>
+                        <div style="display:flex;gap:12px">
+                            <button onclick="saveProfile()" class="login-btn" style="width:auto;padding:10px 24px">💾 Save</button>
+                            <button onclick="hideEditMode()" style="padding:10px 24px;border:1.5px solid #e2e8f7;border-radius:8px;background:white;cursor:pointer;font-family:inherit;font-size:14px">Cancel</button>
+                        </div>
+                        <p id="profile-msg" style="margin-top:12px"></p>
                     </div>
                 </div>
             </div>
         </div>
+
         <script>
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            let currentUser = null;
+
             async function loadProfile() {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if (!user) { window.location.href = 'login.html'; return; }
+                currentUser = user;
 
                 document.getElementById('p-email').textContent = user.email;
 
@@ -70,8 +103,57 @@
                     document.getElementById('p-natid').textContent = student.national_id || '—';
                     document.getElementById('p-class').textContent = student.class || '—';
                     document.getElementById('p-grade').textContent = student.grade_level || '—';
+
+                    document.getElementById('edit-name').value = student.name || '';
+                    document.getElementById('edit-dob').value = student.dob || '';
+                    document.getElementById('edit-natid').value = student.national_id || '';
+                    document.getElementById('edit-regno').value = student.reg_no || '';
                 }
             }
+
+            function showEditMode() {
+                document.getElementById('view-mode').style.display = 'none';
+                document.getElementById('edit-mode').style.display = 'block';
+            }
+
+            function hideEditMode() {
+                document.getElementById('edit-mode').style.display = 'none';
+                document.getElementById('view-mode').style.display = 'block';
+            }
+
+            async function saveProfile() {
+                const name = document.getElementById('edit-name').value;
+                const dob = document.getElementById('edit-dob').value;
+                const natid = document.getElementById('edit-natid').value;
+                const regno = document.getElementById('edit-regno').value;
+
+                if (!name) {
+                    document.getElementById('profile-msg').textContent = '⚠️ Name is required!';
+                    return;
+                }
+
+                const { error } = await db
+                    .from('students')
+                    .update({
+                        name: name,
+                        dob: dob,
+                        national_id: natid,
+                        reg_no: regno
+                    })
+                    .eq('user_id', currentUser.id);
+
+                if (error) {
+                    document.getElementById('profile-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('profile-msg').textContent = '✅ Profile saved!';
+                    document.getElementById('p-name').textContent = name;
+                    document.getElementById('p-dob').textContent = dob;
+                    document.getElementById('p-natid').textContent = natid;
+                    document.getElementById('p-regno').textContent = regno;
+                    setTimeout(() => hideEditMode(), 1000);
+                }
+            }
+
             loadProfile();
         </script>
     </body>

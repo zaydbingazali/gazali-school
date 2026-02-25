@@ -357,3 +357,21 @@ body {
 
 .nav-item.logout { margin-top: 20px; color: rgba(255,100,100,0.8); }
 .nav-item.logout:hover { background: rgba(255,100,100,0.1); color: #ff6464; }
+
+.profile-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+}
+
+.profile-avatar {
+    font-size: 80px;
+    background: #f0f4ff;
+    border-radius: 16px;
+    padding: 20px;
+    flex-shrink: 0;
+}
+
+.profile-info {
+    flex: 1;
+}
