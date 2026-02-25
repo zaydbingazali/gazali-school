@@ -3,7 +3,7 @@
     <head>
         <title>Fees — Gazali International School</title>
         <link rel="stylesheet" href="portal.css">
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <script src="config.js"></script>
         <a href="student-fees.html" class="nav-item">💰 Fees</a>
     </head>
@@ -99,7 +99,7 @@
                             <td style="color:#e05c7a;font-weight:700">₹${balance.toLocaleString()}</td>
                             <td>${f.due_date}</td>
                             <td><span style="background:${statusColor}22;color:${statusColor};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:capitalize">${f.status}</span></td>
-                            <td>${f.status === 'paid' ? `<button onclick="downloadReceipt('${f.term}', ${f.amount})" style="padding:5px 12px;border-radius:6px;border:none;background:#1a2744;color:white;cursor:pointer;font-size:12px">⬇ Receipt</button>` : '—'}</td>
+                            <td>${f.status === 'paid' ? `<button onclick='downloadReceipt("${f.term}", ${f.amount})' style="padding:5px 12px;border-radius:6px;border:none;background:#1a2744;color:white;cursor:pointer;font-size:12px">⬇ Receipt</button>` : '—'}</td>
                         </tr>`;
                     });
 
@@ -115,8 +115,7 @@
 
             function downloadReceipt(term, amount) {
     const user = JSON.parse(localStorage.getItem('user'));
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new window.jspdf.jsPDF();
 
     doc.setFillColor(26, 39, 68);
     doc.rect(0, 0, 210, 40, 'F');
