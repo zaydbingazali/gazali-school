@@ -30,7 +30,7 @@
                 </div>
 
                 <div class="section">
-                    <h2>📨 Send Message</h2>
+                    <h2>📨 Send Message to Student</h2>
                     <div class="form-group">
                         <label>Select Student</label>
                         <select id="receiver-id">
@@ -46,7 +46,12 @@
                 </div>
 
                 <div class="section">
-                    <h2>📬 Sent Messages</h2>
+                    <h2>📬 Received Messages</h2>
+                    <div id="received-list">Loading...</div>
+                </div>
+
+                <div class="section">
+                    <h2>📤 Sent Messages</h2>
                     <div id="sent-list">Loading...</div>
                 </div>
             </div>
@@ -69,7 +74,40 @@
                     });
                 }
 
+                loadReceived();
                 loadSent();
+            }
+
+            async function loadReceived() {
+                const { data: messages } = await db
+                    .from('messages')
+                    .select('*')
+                    .eq('receiver_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (messages && messages.length > 0) {
+                    await db.from('messages')
+                        .update({ read: true })
+                        .eq('receiver_id', currentUser.id)
+                        .eq('read', false);
+
+                    let html = '';
+                    messages.forEach(m => {
+                        const isNew = !m.read;
+                        html += `
+                        <div style="background:${isNew ? '#f0f4ff' : 'white'};border:1.5px solid ${isNew ? '#4f8ef7' : '#e2e8f7'};border-radius:12px;padding:16px;margin-bottom:12px">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                                <span style="font-size:12px;color:#999">From Student</span>
+                                <span style="font-size:12px;color:#999">${new Date(m.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <p style="margin:0;color:#1a2744;font-size:15px">${m.message}</p>
+                            ${isNew ? '<span style="font-size:11px;color:#4f8ef7;font-weight:700;margin-top:8px;display:block">🔵 New</span>' : ''}
+                        </div>`;
+                    });
+                    document.getElementById('received-list').innerHTML = html;
+                } else {
+                    document.getElementById('received-list').innerHTML = '<p>No messages received yet.</p>';
+                }
             }
 
             async function loadSent() {

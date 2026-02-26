@@ -35,29 +35,65 @@
                 </div>
 
                 <div class="section">
-                    <h2>📬 My Messages</h2>
-                    <div id="messages-list">Loading...</div>
+                    <h2>📨 Send Message to Teacher</h2>
+                    <div class="form-group">
+                        <label>Select Teacher</label>
+                        <select id="receiver-id">
+                            <option value="">-- Select Teacher --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="message-text" placeholder="Type your message here..." style="width:100%;padding:12px;border-radius:10px;border:1.5px solid #e2e8f7;font-family:inherit;font-size:14px;min-height:100px;resize:vertical"></textarea>
+                    </div>
+                    <button onclick="sendMessage()" class="login-btn">Send Message 📨</button>
+                    <p id="send-msg"></p>
+                </div>
+
+                <div class="section">
+                    <h2>📬 Received Messages</h2>
+                    <div id="received-list">Loading...</div>
+                </div>
+
+                <div class="section">
+                    <h2>📤 Sent Messages</h2>
+                    <div id="sent-list">Loading...</div>
                 </div>
             </div>
         </div>
 
         <script>
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            let currentUser = null;
 
-            async function loadMessages() {
+            async function load() {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if (!user) { window.location.href = 'login.html'; return; }
+                currentUser = user;
 
+                const { data: teachers } = await db.from('users').select('*').eq('role', 'teacher');
+                if (teachers) {
+                    const dropdown = document.getElementById('receiver-id');
+                    teachers.forEach(t => {
+                        dropdown.innerHTML += `<option value="${t.id}">${t.email}</option>`;
+                    });
+                }
+
+                loadReceived();
+                loadSent();
+            }
+
+            async function loadReceived() {
                 const { data: messages } = await db
                     .from('messages')
                     .select('*')
-                    .eq('receiver_id', user.id)
+                    .eq('receiver_id', currentUser.id)
                     .order('created_at', { ascending: false });
 
                 if (messages && messages.length > 0) {
                     await db.from('messages')
                         .update({ read: true })
-                        .eq('receiver_id', user.id)
+                        .eq('receiver_id', currentUser.id)
                         .eq('read', false);
 
                     let html = '';
@@ -73,13 +109,61 @@
                             ${isNew ? '<span style="font-size:11px;color:#4f8ef7;font-weight:700;margin-top:8px;display:block">🔵 New</span>' : ''}
                         </div>`;
                     });
-                    document.getElementById('messages-list').innerHTML = html;
+                    document.getElementById('received-list').innerHTML = html;
                 } else {
-                    document.getElementById('messages-list').innerHTML = '<p>No messages yet.</p>';
+                    document.getElementById('received-list').innerHTML = '<p>No messages received yet.</p>';
                 }
             }
 
-            loadMessages();
+            async function loadSent() {
+                const { data: messages } = await db
+                    .from('messages')
+                    .select('*')
+                    .eq('sender_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (messages && messages.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>To</th><th>Message</th><th>Date</th><th>Read</th></tr></thead><tbody>';
+                    messages.forEach(m => {
+                        html += `<tr>
+                            <td style="font-size:11px;color:#999">${m.receiver_id}</td>
+                            <td>${m.message}</td>
+                            <td>${new Date(m.created_at).toLocaleDateString()}</td>
+                            <td>${m.read ? '✅' : '⏳'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('sent-list').innerHTML = html;
+                } else {
+                    document.getElementById('sent-list').innerHTML = '<p>No messages sent yet.</p>';
+                }
+            }
+
+            async function sendMessage() {
+                const receiverId = document.getElementById('receiver-id').value;
+                const message = document.getElementById('message-text').value;
+
+                if (!receiverId || !message) {
+                    document.getElementById('send-msg').textContent = '⚠️ Please select a teacher and write a message!';
+                    return;
+                }
+
+                const { error } = await db.from('messages').insert({
+                    sender_id: currentUser.id,
+                    receiver_id: receiverId,
+                    message: message
+                });
+
+                if (error) {
+                    document.getElementById('send-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('send-msg').textContent = '✅ Message sent!';
+                    document.getElementById('message-text').value = '';
+                    loadSent();
+                }
+            }
+
+            load();
         </script>
     </body>
 </html>
