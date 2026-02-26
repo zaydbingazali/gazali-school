@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Manage Fees — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Admin Portal</p>
+                </div>
+                <nav>
+                    <a href="admin-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="admin-students.html" class="nav-item">👨‍🎓 Students</a>
+                    <a href="admin-teachers.html" class="nav-item">👩‍🏫 Teachers</a>
+                    <a href="admin-fees.html" class="nav-item active">💰 Manage Fees</a>
+                    <a href="admin-attendance.html" class="nav-item">📋 Attendance</a>
+                    <a href="admin-circulars.html" class="nav-item">📢 Circulars</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>💰 Manage Fees</h1>
+                    <p>Gazali International School</p>
+                </div>
+                <div class="section">
+                    <div id="fees-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function loadFees() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                const { data: fees } = await db.from('fees').select('*');
+                if (fees && fees.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Student ID</th><th>Term</th><th>Amount</th><th>Paid</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+                    fees.forEach(f => {
+                        const statusColor = f.status === 'paid' ? '#00c9a7' : f.status === 'partial' ? '#f7a84f' : '#e05c7a';
+                        html += `<tr>
+                            <td style="font-size:11px;color:#999">${f.student_id}</td>
+                            <td>${f.term}</td>
+                            <td>₹${f.amount.toLocaleString()}</td>
+                            <td>₹${f.paid.toLocaleString()}</td>
+                            <td><span style="background:${statusColor}22;color:${statusColor};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:capitalize">${f.status}</span></td>
+                            <td>${f.status !== 'paid' ? `<button onclick='markPaid("${f.id}", ${f.amount})' style="padding:5px 12px;border-radius:6px;border:none;background:#00c9a7;color:white;cursor:pointer;font-size:12px">✅ Mark Paid</button>` : '—'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('fees-list').innerHTML = html;
+                } else {
+                    document.getElementById('fees-list').innerHTML = '<p>No fee records found.</p>';
+                }
+            }
+
+            async function markPaid(feeId, amount) {
+                const { error } = await db.from('fees').update({ paid: amount, status: 'paid' }).eq('id', feeId);
+                if (error) {
+                    alert('Error: ' + error.message);
+                } else {
+                    alert('✅ Fee marked as paid!');
+                    loadFees();
+                }
+            }
+
+            loadFees();
+        </script>
+    </body>
+</html>

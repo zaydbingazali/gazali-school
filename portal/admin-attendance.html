@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Attendance — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Admin Portal</p>
+                </div>
+                <nav>
+                    <a href="admin-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="admin-students.html" class="nav-item">👨‍🎓 Students</a>
+                    <a href="admin-teachers.html" class="nav-item">👩‍🏫 Teachers</a>
+                    <a href="admin-fees.html" class="nav-item">💰 Manage Fees</a>
+                    <a href="admin-attendance.html" class="nav-item active">📋 Attendance</a>
+                    <a href="admin-circulars.html" class="nav-item">📢 Circulars</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>📋 Attendance Report</h1>
+                    <p>Gazali International School</p>
+                </div>
+                <div class="section">
+                    <div id="attendance-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function loadAttendance() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                const { data: attendance } = await db.from('attendance').select('*').order('date', { ascending: false });
+                if (attendance && attendance.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Student ID</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+                    attendance.forEach(a => {
+                        const color = a.status === 'present' ? '#00c9a7' : a.status === 'absent' ? '#e05c7a' : '#f7a84f';
+                        html += `<tr>
+                            <td style="font-size:11px;color:#999">${a.student_id}</td>
+                            <td>${a.date}</td>
+                            <td style="color:${color};font-weight:700;text-transform:capitalize">${a.status}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('attendance-list').innerHTML = html;
+                } else {
+                    document.getElementById('attendance-list').innerHTML = '<p>No attendance records yet.</p>';
+                }
+            }
+
+            loadAttendance();
+        </script>
+    </body>
+</html>

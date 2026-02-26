@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Add User — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Principal Portal</p>
+                </div>
+                <nav>
+                    <a href="principal-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="principal-students.html" class="nav-item">👨‍🎓 Students</a>
+                    <a href="principal-teachers.html" class="nav-item">👩‍🏫 Teachers</a>
+                    <a href="principal-grades.html" class="nav-item">📊 Grades</a>
+                    <a href="principal-attendance.html" class="nav-item">📋 Attendance</a>
+                    <a href="principal-adduser.html" class="nav-item active">➕ Add User</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>➕ Add New User</h1>
+                    <p>Gazali International School</p>
+                </div>
+                <div class="section">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="text" id="new-email" placeholder="e.g. student2@gazali.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="text" id="new-password" placeholder="e.g. student123">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="new-role">
+                            <option value="">-- Select Role --</option>
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="parent">Parent</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button onclick="addUser()" class="login-btn">Add User</button>
+                    <p id="adduser-msg"></p>
+                </div>
+            </div>
+        </div>
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function addUser() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                const email = document.getElementById('new-email').value;
+                const password = document.getElementById('new-password').value;
+                const role = document.getElementById('new-role').value;
+
+                if (!email || !password || !role) {
+                    document.getElementById('adduser-msg').textContent = '⚠️ Please fill in all fields!';
+                    return;
+                }
+
+                const { error } = await db.from('users').insert({ email, password, role });
+
+                if (error) {
+                    document.getElementById('adduser-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('adduser-msg').textContent = '✅ User added successfully!';
+                    document.getElementById('new-email').value = '';
+                    document.getElementById('new-password').value = '';
+                    document.getElementById('new-role').value = '';
+                }
+            }
+        </script>
+    </body>
+</html>

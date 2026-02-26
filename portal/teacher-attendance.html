@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Attendance — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Teacher Portal</p>
+                </div>
+                <nav>
+                    <a href="teacher-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="teacher-students.html" class="nav-item">👨‍🎓 My Students</a>
+                    <a href="teacher-grades.html" class="nav-item">📝 Enter Grades</a>
+                    <a href="teacher-attendance.html" class="nav-item active">✅ Attendance</a>
+                    <a href="teacher-upload.html" class="nav-item">📁 Upload Files</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>✅ Mark Attendance</h1>
+                    <p>Gazali International School</p>
+                </div>
+                <div class="section">
+                    <p style="color:#999;margin-bottom:16px">Today: <b style="color:#1a2744" id="today-date"></b></p>
+                    <div id="attendance-list">Loading...</div>
+                    <p id="attendance-msg"></p>
+                </div>
+            </div>
+        </div>
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function loadStudents() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                document.getElementById('today-date').textContent = new Date().toLocaleDateString();
+
+                const { data: students } = await db.from('students').select('*');
+                if (students && students.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th><th>Status</th></tr></thead><tbody>';
+                    students.forEach(s => {
+                        html += `<tr>
+                            <td>${s.name || '—'}</td>
+                            <td>${s.class || '—'}</td>
+                            <td>
+                                <button onclick="markAttendance('${s.user_id}', 'present')" class="att-btn present-btn">✅ Present</button>
+                                <button onclick="markAttendance('${s.user_id}', 'absent')" class="att-btn absent-btn">❌ Absent</button>
+                                <button onclick="markAttendance('${s.user_id}', 'late')" class="att-btn late-btn">🕐 Late</button>
+                            </td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('attendance-list').innerHTML = html;
+                }
+            }
+
+            async function markAttendance(studentId, status) {
+                const today = new Date().toISOString().split('T')[0];
+                const { error } = await db.from('attendance').insert({
+                    student_id: studentId,
+                    date: today,
+                    status: status
+                });
+
+                if (error) {
+                    document.getElementById('attendance-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('attendance-msg').textContent = '✅ Attendance marked as ' + status + '!';
+                }
+            }
+
+            loadStudents();
+        </script>
+    </body>
+</html>

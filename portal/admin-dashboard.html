@@ -14,11 +14,12 @@
                     <p class="role-tag">Admin Portal</p>
                 </div>
                 <nav>
-                    <a href="#students" class="nav-item active">👨‍🎓 Search Students</a>
-                    <a href="#teachers" class="nav-item">👩‍🏫 Search Teachers</a>
-                    <a href="#fees" class="nav-item">💰 Manage Fees</a>
-                    <a href="#attendance" class="nav-item">📋 Attendance</a>
-                    <a href="#circulars" class="nav-item">📢 Upload Circulars</a>
+                    <a href="admin-dashboard.html" class="nav-item active">🏠 Dashboard</a>
+                    <a href="admin-students.html" class="nav-item">👨‍🎓 Students</a>
+                    <a href="admin-teachers.html" class="nav-item">👩‍🏫 Teachers</a>
+                    <a href="admin-fees.html" class="nav-item">💰 Manage Fees</a>
+                    <a href="admin-attendance.html" class="nav-item">📋 Attendance</a>
+                    <a href="admin-circulars.html" class="nav-item">📢 Circulars</a>
                     <a href="login.html" class="nav-item logout">🚪 Logout</a>
                 </nav>
             </div>
@@ -28,247 +29,81 @@
                     <p>Gazali International School</p>
                 </div>
 
-                <div class="section" id="students">
-                    <h2>👨‍🎓 Search Students</h2>
-                    <div class="form-group" style="max-width:400px">
-                        <input type="text" id="student-search" placeholder="Search by name or class..." oninput="searchStudents()">
+                <div class="subject-cards">
+                    <div class="subject-card">
+                        <span class="subject-name">Total Students</span>
+                        <span class="subject-score" id="total-students">0</span>
                     </div>
-                    <div id="students-list">Type to search...</div>
-                </div>
-
-                <div class="section" id="teachers">
-                    <h2>👩‍🏫 Search Teachers</h2>
-                    <div class="form-group" style="max-width:400px">
-                        <input type="text" id="teacher-search" placeholder="Search by email..." oninput="searchTeachers()">
+                    <div class="subject-card" style="background:linear-gradient(135deg,#00c9a7,#00a88a)">
+                        <span class="subject-name">Fees Paid</span>
+                        <span class="subject-score" id="fees-paid">0</span>
                     </div>
-                    <div id="teachers-list">Type to search...</div>
-                </div>
-
-                <div class="section" id="fees">
-                    <h2>💰 Manage Fees</h2>
-                    <div id="fees-list">Loading...</div>
-                </div>
-
-                <div class="section" id="attendance">
-                    <h2>📋 Attendance Report</h2>
-                    <div id="attendance-list">Loading...</div>
-                </div>
-
-                <div class="section" id="circulars">
-                    <h2>📢 Upload Circular</h2>
-                    <div class="form-group">
-                        <label>Select Classes</label>
-                        <div style="display:flex;gap:8px;margin-bottom:8px">
-                            <button type="button" onclick="selectAllClasses()" style="padding:4px 12px;border-radius:6px;border:1px solid #1a2744;background:white;cursor:pointer;font-size:12px">Select All</button>
-                            <button type="button" onclick="deselectAllClasses()" style="padding:4px 12px;border-radius:6px;border:1px solid #e2e8f7;background:white;cursor:pointer;font-size:12px">Deselect All</button>
-                        </div>
-                        <div id="class-checkboxes" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px;background:#f0f4ff;border-radius:10px">
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="1A"> Grade 1A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="1B"> Grade 1B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="2A"> Grade 2A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="2B"> Grade 2B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="3A"> Grade 3A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="3B"> Grade 3B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="4A"> Grade 4A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="4B"> Grade 4B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="5A"> Grade 5A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="5B"> Grade 5B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="6A"> Grade 6A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="6B"> Grade 6B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="7A"> Grade 7A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="7B"> Grade 7B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="8A"> Grade 8A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="8B"> Grade 8B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="9A"> Grade 9A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="9B"> Grade 9B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="10A"> Grade 10A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="10B"> Grade 10B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="11A"> Grade 11A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="11B"> Grade 11B</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="12A"> Grade 12A</label>
-                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="12B"> Grade 12B</label>
-                        </div>
+                    <div class="subject-card" style="background:linear-gradient(135deg,#e05c7a,#c4415e)">
+                        <span class="subject-name">Fees Pending</span>
+                        <span class="subject-score" id="fees-pending">0</span>
                     </div>
-                    <div class="form-group">
-                        <label>Select File</label>
-                        <input type="file" id="circular-file">
+                    <div class="subject-card" style="background:linear-gradient(135deg,#f7a84f,#d4851a)">
+                        <span class="subject-name">Circulars Sent</span>
+                        <span class="subject-score" id="circulars-sent">0</span>
                     </div>
-                    <button onclick="uploadCircular()" class="login-btn">Upload Circular</button>
-                    <p id="circular-msg"></p>
                 </div>
 
+                <div class="dashboard-grid">
+                    <div class="section">
+                        <h2>👨‍🎓 Recent Students</h2>
+                        <div id="recent-students">Loading...</div>
+                    </div>
+                    <div class="section">
+                        <h2>📅 Calendar</h2>
+                        <div id="calendar"></div>
+                    </div>
+                </div>
             </div>
         </div>
-
         <script>
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            let allStudents = [];
-            let allTeachers = [];
-
-            function selectAllClasses() {
-                document.querySelectorAll('#class-checkboxes input[type="checkbox"]').forEach(cb => cb.checked = true);
-            }
-
-            function deselectAllClasses() {
-                document.querySelectorAll('#class-checkboxes input[type="checkbox"]').forEach(cb => cb.checked = false);
-            }
-
-            function getSelectedClasses() {
-                const checked = document.querySelectorAll('#class-checkboxes input[type="checkbox"]:checked');
-                return Array.from(checked).map(cb => cb.value);
-            }
-
-            function searchStudents() {
-                const query = document.getElementById('student-search').value.toLowerCase();
-                if (!allStudents.length) return;
-
-                const filtered = allStudents.filter(s =>
-                    (s.name && s.name.toLowerCase().includes(query)) ||
-                    (s.class && s.class.toLowerCase().includes(query)) ||
-                    (s.reg_no && s.reg_no.toLowerCase().includes(query))
-                );
-
-                if (filtered.length > 0) {
-                    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th><th>Grade Level</th><th>Reg No.</th></tr></thead><tbody>';
-                    filtered.forEach(s => {
-                        html += `<tr>
-                            <td>${s.name || '—'}</td>
-                            <td>${s.class || '—'}</td>
-                            <td>${s.grade_level || '—'}</td>
-                            <td>${s.reg_no || '—'}</td>
-                        </tr>`;
-                    });
-                    html += '</tbody></table>';
-                    document.getElementById('students-list').innerHTML = html;
-                } else {
-                    document.getElementById('students-list').innerHTML = '<p>No students found.</p>';
-                }
-            }
-
-            function searchTeachers() {
-                const query = document.getElementById('teacher-search').value.toLowerCase();
-                if (!allTeachers.length) return;
-
-                const filtered = allTeachers.filter(t =>
-                    t.email && t.email.toLowerCase().includes(query)
-                );
-
-                if (filtered.length > 0) {
-                    let html = '<table class="timetable"><thead><tr><th>Email</th><th>Role</th></tr></thead><tbody>';
-                    filtered.forEach(t => {
-                        html += `<tr><td>${t.email}</td><td>${t.role}</td></tr>`;
-                    });
-                    html += '</tbody></table>';
-                    document.getElementById('teachers-list').innerHTML = html;
-                } else {
-                    document.getElementById('teachers-list').innerHTML = '<p>No teachers found.</p>';
-                }
-            }
 
             async function loadDashboard() {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if (!user) { window.location.href = 'login.html'; return; }
 
                 const { data: students } = await db.from('students').select('*');
-                if (students) allStudents = students;
-
-                const { data: teachers } = await db.from('users').select('*').eq('role', 'teacher');
-                if (teachers) allTeachers = teachers;
+                if (students) {
+                    document.getElementById('total-students').textContent = students.length;
+                    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th></tr></thead><tbody>';
+                    students.slice(0, 5).forEach(s => {
+                        html += `<tr><td>${s.name || '—'}</td><td>${s.class || '—'}</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('recent-students').innerHTML = html;
+                }
 
                 const { data: fees } = await db.from('fees').select('*');
-                if (fees && fees.length > 0) {
-                    let html = '<table class="timetable"><thead><tr><th>Student ID</th><th>Term</th><th>Amount</th><th>Paid</th><th>Status</th><th>Action</th></tr></thead><tbody>';
-                    fees.forEach(f => {
-                        const statusColor = f.status === 'paid' ? '#00c9a7' : f.status === 'partial' ? '#f7a84f' : '#e05c7a';
-                        html += `<tr>
-                            <td style="font-size:11px;color:#999">${f.student_id}</td>
-                            <td>${f.term}</td>
-                            <td>₹${f.amount.toLocaleString()}</td>
-                            <td>₹${f.paid.toLocaleString()}</td>
-                            <td><span style="background:${statusColor}22;color:${statusColor};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:capitalize">${f.status}</span></td>
-                            <td>${f.status !== 'paid' ? `<button onclick='markPaid("${f.id}", ${f.amount})' style="padding:5px 12px;border-radius:6px;border:none;background:#00c9a7;color:white;cursor:pointer;font-size:12px">✅ Mark Paid</button>` : '—'}</td>
-                        </tr>`;
-                    });
-                    html += '</tbody></table>';
-                    document.getElementById('fees-list').innerHTML = html;
-                } else {
-                    document.getElementById('fees-list').innerHTML = '<p>No fee records found.</p>';
+                if (fees) {
+                    document.getElementById('fees-paid').textContent = fees.filter(f => f.status === 'paid').length;
+                    document.getElementById('fees-pending').textContent = fees.filter(f => f.status !== 'paid').length;
                 }
 
-                const { data: attendance } = await db.from('attendance').select('*').order('date', { ascending: false });
-                if (attendance && attendance.length > 0) {
-                    let html = '<table class="timetable"><thead><tr><th>Student ID</th><th>Date</th><th>Status</th></tr></thead><tbody>';
-                    attendance.forEach(a => {
-                        const color = a.status === 'present' ? '#00c9a7' : a.status === 'absent' ? '#e05c7a' : '#f7a84f';
-                        html += `<tr>
-                            <td style="font-size:11px;color:#999">${a.student_id}</td>
-                            <td>${a.date}</td>
-                            <td style="color:${color};font-weight:700;text-transform:capitalize">${a.status}</td>
-                        </tr>`;
-                    });
-                    html += '</tbody></table>';
-                    document.getElementById('attendance-list').innerHTML = html;
-                } else {
-                    document.getElementById('attendance-list').innerHTML = '<p>No attendance records yet.</p>';
-                }
+                const { data: circulars } = await db.from('files').select('*').eq('type', 'circular');
+                if (circulars) document.getElementById('circulars-sent').textContent = circulars.length;
+
+                renderCalendar();
             }
 
-            async function markPaid(feeId, amount) {
-                const { error } = await db.from('fees').update({ paid: amount, status: 'paid' }).eq('id', feeId);
-                if (error) {
-                    alert('Error: ' + error.message);
-                } else {
-                    alert('✅ Fee marked as paid!');
-                    loadDashboard();
+            function renderCalendar() {
+                const now = new Date();
+                const month = now.toLocaleString('default', { month: 'long' });
+                const year = now.getFullYear();
+                const daysInMonth = new Date(year, now.getMonth() + 1, 0).getDate();
+                const firstDay = new Date(year, now.getMonth(), 1).getDay();
+                let html = `<div class="calendar-header">${month} ${year}</div><div class="calendar-grid">`;
+                ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => html += `<div class="cal-day-name">${d}</div>`);
+                for (let i = 0; i < firstDay; i++) html += '<div></div>';
+                for (let d = 1; d <= daysInMonth; d++) {
+                    html += `<div class="cal-day ${d === now.getDate() ? 'today' : ''}">${d}</div>`;
                 }
-            }
-
-            async function uploadCircular() {
-                const user = JSON.parse(localStorage.getItem('user'));
-                const selectedClasses = getSelectedClasses();
-                const fileInput = document.getElementById('circular-file');
-                const file = fileInput.files[0];
-
-                if (!file) {
-                    document.getElementById('circular-msg').textContent = '⚠️ Please select a file!';
-                    return;
-                }
-
-                if (selectedClasses.length === 0) {
-                    document.getElementById('circular-msg').textContent = '⚠️ Please select at least one class!';
-                    return;
-                }
-
-                document.getElementById('circular-msg').textContent = '⏳ Uploading...';
-
-                const fileName = Date.now() + '_' + file.name;
-                const { error: storageError } = await db.storage.from('files').upload(fileName, file, { upsert: true });
-
-                if (storageError) {
-                    document.getElementById('circular-msg').textContent = '❌ Error: ' + storageError.message;
-                    return;
-                }
-
-                const { data: urlData } = db.storage.from('files').getPublicUrl(fileName);
-
-                const inserts = selectedClasses.map(cls => ({
-                    name: file.name,
-                    type: 'circular',
-                    url: urlData.publicUrl,
-                    uploaded_by: user.id,
-                    class: cls
-                }));
-
-                const { error: dbError } = await db.from('files').insert(inserts);
-
-                if (dbError) {
-                    document.getElementById('circular-msg').textContent = '❌ Error: ' + dbError.message;
-                    return;
-                }
-
-                document.getElementById('circular-msg').textContent = '✅ Circular uploaded to ' + selectedClasses.length + ' class(es)!';
-                fileInput.value = '';
-                deselectAllClasses();
+                html += '</div>';
+                document.getElementById('calendar').innerHTML = html;
             }
 
             loadDashboard();

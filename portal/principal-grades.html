@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Grades — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Principal Portal</p>
+                </div>
+                <nav>
+                    <a href="principal-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="principal-students.html" class="nav-item">👨‍🎓 Students</a>
+                    <a href="principal-teachers.html" class="nav-item">👩‍🏫 Teachers</a>
+                    <a href="principal-grades.html" class="nav-item active">📊 Grades</a>
+                    <a href="principal-attendance.html" class="nav-item">📋 Attendance</a>
+                    <a href="principal-adduser.html" class="nav-item">➕ Add User</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>📊 All Grades</h1>
+                    <p>Gazali International School</p>
+                </div>
+                <div class="section">
+                    <div id="grades-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function loadGrades() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                const { data: grades } = await db.from('grades').select('*');
+                if (grades && grades.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Subject</th><th>Score</th><th>Term</th><th>Grade</th></tr></thead><tbody>';
+                    grades.forEach(g => {
+                        const letter = g.score >= 90 ? 'A+' : g.score >= 80 ? 'A' : g.score >= 70 ? 'B' : g.score >= 60 ? 'C' : 'F';
+                        const color = g.score >= 80 ? '#00c9a7' : g.score >= 60 ? '#f7a84f' : '#e05c7a';
+                        html += `<tr>
+                            <td>${g.subject}</td>
+                            <td style="font-weight:700;color:${color}">${g.score}/100</td>
+                            <td>Term ${g.term}</td>
+                            <td style="font-weight:800;color:${color}">${letter}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('grades-list').innerHTML = html;
+                } else {
+                    document.getElementById('grades-list').innerHTML = '<p>No grades yet.</p>';
+                }
+            }
+
+            loadGrades();
+        </script>
+    </body>
+</html>

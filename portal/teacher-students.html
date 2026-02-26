@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Students — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Teacher Portal</p>
+                </div>
+                <nav>
+                    <a href="teacher-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="teacher-students.html" class="nav-item active">👨‍🎓 My Students</a>
+                    <a href="teacher-grades.html" class="nav-item">📝 Enter Grades</a>
+                    <a href="teacher-attendance.html" class="nav-item">✅ Attendance</a>
+                    <a href="teacher-upload.html" class="nav-item">📁 Upload Files</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>👨‍🎓 My Students</h1>
+                    <p>Gazali International School</p>
+                </div>
+                <div class="section">
+                    <div class="form-group" style="max-width:400px">
+                        <input type="text" id="student-search" placeholder="Search by name or class..." oninput="searchStudents()">
+                    </div>
+                    <div id="students-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            let allStudents = [];
+
+            async function loadStudents() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                const { data: students } = await db.from('students').select('*');
+                if (students && students.length > 0) {
+                    allStudents = students;
+                    renderStudents(students);
+                } else {
+                    document.getElementById('students-list').innerHTML = '<p>No students found.</p>';
+                }
+            }
+
+            function renderStudents(students) {
+                let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th><th>Grade Level</th><th>Reg No.</th></tr></thead><tbody>';
+                students.forEach(s => {
+                    html += `<tr>
+                        <td>${s.name || '—'}</td>
+                        <td>${s.class || '—'}</td>
+                        <td>${s.grade_level || '—'}</td>
+                        <td>${s.reg_no || '—'}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                document.getElementById('students-list').innerHTML = html;
+            }
+
+            function searchStudents() {
+                const query = document.getElementById('student-search').value.toLowerCase();
+                const filtered = allStudents.filter(s =>
+                    (s.name && s.name.toLowerCase().includes(query)) ||
+                    (s.class && s.class.toLowerCase().includes(query))
+                );
+                renderStudents(filtered);
+            }
+
+            loadStudents();
+        </script>
+    </body>
+</html>
