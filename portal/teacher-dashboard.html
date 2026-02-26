@@ -84,34 +84,37 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Select Class</label>
-                        <select id="file-class">
-                            <option value="all">All Classes</option>
-                            <option value="1A">Grade 1A</option>
-                            <option value="1B">Grade 1B</option>
-                            <option value="2A">Grade 2A</option>
-                            <option value="2B">Grade 2B</option>
-                            <option value="3A">Grade 3A</option>
-                            <option value="3B">Grade 3B</option>
-                            <option value="4A">Grade 4A</option>
-                            <option value="4B">Grade 4B</option>
-                            <option value="5A">Grade 5A</option>
-                            <option value="5B">Grade 5B</option>
-                            <option value="6A">Grade 6A</option>
-                            <option value="6B">Grade 6B</option>
-                            <option value="7A">Grade 7A</option>
-                            <option value="7B">Grade 7B</option>
-                            <option value="8A">Grade 8A</option>
-                            <option value="8B">Grade 8B</option>
-                            <option value="9A">Grade 9A</option>
-                            <option value="9B">Grade 9B</option>
-                            <option value="10A">Grade 10A</option>
-                            <option value="10B">Grade 10B</option>
-                            <option value="11A">Grade 11A</option>
-                            <option value="11B">Grade 11B</option>
-                            <option value="12A">Grade 12A</option>
-                            <option value="12B">Grade 12B</option>
-                        </select>
+                        <label>Select Classes</label>
+                        <div style="display:flex;gap:8px;margin-bottom:8px">
+                            <button type="button" onclick="selectAllClasses()" style="padding:4px 12px;border-radius:6px;border:1px solid #1a2744;background:white;cursor:pointer;font-size:12px">Select All</button>
+                            <button type="button" onclick="deselectAllClasses()" style="padding:4px 12px;border-radius:6px;border:1px solid #e2e8f7;background:white;cursor:pointer;font-size:12px">Deselect All</button>
+                        </div>
+                        <div id="class-checkboxes" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px;background:#f0f4ff;border-radius:10px">
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="1A"> Grade 1A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="1B"> Grade 1B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="2A"> Grade 2A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="2B"> Grade 2B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="3A"> Grade 3A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="3B"> Grade 3B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="4A"> Grade 4A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="4B"> Grade 4B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="5A"> Grade 5A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="5B"> Grade 5B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="6A"> Grade 6A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="6B"> Grade 6B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="7A"> Grade 7A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="7B"> Grade 7B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="8A"> Grade 8A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="8B"> Grade 8B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="9A"> Grade 9A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="9B"> Grade 9B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="10A"> Grade 10A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="10B"> Grade 10B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="11A"> Grade 11A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="11B"> Grade 11B</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="12A"> Grade 12A</label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" value="12B"> Grade 12B</label>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Select File</label>
@@ -126,6 +129,19 @@
 
         <script>
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            function selectAllClasses() {
+                document.querySelectorAll('#class-checkboxes input[type="checkbox"]').forEach(cb => cb.checked = true);
+            }
+
+            function deselectAllClasses() {
+                document.querySelectorAll('#class-checkboxes input[type="checkbox"]').forEach(cb => cb.checked = false);
+            }
+
+            function getSelectedClasses() {
+                const checked = document.querySelectorAll('#class-checkboxes input[type="checkbox"]:checked');
+                return Array.from(checked).map(cb => cb.value);
+            }
 
             async function loadDashboard() {
                 const user = JSON.parse(localStorage.getItem('user'));
@@ -217,12 +233,17 @@
             async function uploadFile() {
                 const user = JSON.parse(localStorage.getItem('user'));
                 const fileType = document.getElementById('file-type').value;
-                const fileClass = document.getElementById('file-class').value;
+                const selectedClasses = getSelectedClasses();
                 const fileInput = document.getElementById('file-input');
                 const file = fileInput.files[0];
 
                 if (!file) {
                     document.getElementById('upload-msg').textContent = '⚠️ Please select a file!';
+                    return;
+                }
+
+                if (selectedClasses.length === 0) {
+                    document.getElementById('upload-msg').textContent = '⚠️ Please select at least one class!';
                     return;
                 }
 
@@ -243,21 +264,24 @@
                     .from('files')
                     .getPublicUrl(fileName);
 
-                const { error: dbError } = await db.from('files').insert({
+                const inserts = selectedClasses.map(cls => ({
                     name: file.name,
                     type: fileType,
                     url: urlData.publicUrl,
                     uploaded_by: user.id,
-                    class: fileClass
-                });
+                    class: cls
+                }));
+
+                const { error: dbError } = await db.from('files').insert(inserts);
 
                 if (dbError) {
                     document.getElementById('upload-msg').textContent = '❌ Database error: ' + dbError.message;
                     return;
                 }
 
-                document.getElementById('upload-msg').textContent = '✅ File uploaded successfully!';
+                document.getElementById('upload-msg').textContent = '✅ File uploaded to ' + selectedClasses.length + ' class(es) successfully!';
                 document.getElementById('file-input').value = '';
+                deselectAllClasses();
             }
 
             loadDashboard();
