@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Messages — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Teacher Portal</p>
+                </div>
+                <nav>
+                    <a href="teacher-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="teacher-students.html" class="nav-item">👨‍🎓 My Students</a>
+                    <a href="teacher-grades.html" class="nav-item">📝 Enter Grades</a>
+                    <a href="teacher-attendance.html" class="nav-item">✅ Attendance</a>
+                    <a href="teacher-upload.html" class="nav-item">📁 Upload Files</a>
+                    <a href="teacher-messages.html" class="nav-item active">💬 Messages</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>💬 Messages</h1>
+                    <p>Gazali International School</p>
+                </div>
+
+                <div class="section">
+                    <h2>📨 Send Message</h2>
+                    <div class="form-group">
+                        <label>Select Student</label>
+                        <select id="receiver-id">
+                            <option value="">-- Select Student --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="message-text" placeholder="Type your message here..." style="width:100%;padding:12px;border-radius:10px;border:1.5px solid #e2e8f7;font-family:inherit;font-size:14px;min-height:100px;resize:vertical"></textarea>
+                    </div>
+                    <button onclick="sendMessage()" class="login-btn">Send Message 📨</button>
+                    <p id="send-msg"></p>
+                </div>
+
+                <div class="section">
+                    <h2>📬 Sent Messages</h2>
+                    <div id="sent-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            let currentUser = null;
+
+            async function load() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+                currentUser = user;
+
+                const { data: students } = await db.from('students').select('*');
+                if (students) {
+                    const dropdown = document.getElementById('receiver-id');
+                    students.forEach(s => {
+                        dropdown.innerHTML += `<option value="${s.user_id}">${s.name || s.user_id}</option>`;
+                    });
+                }
+
+                loadSent();
+            }
+
+            async function loadSent() {
+                const { data: messages } = await db
+                    .from('messages')
+                    .select('*')
+                    .eq('sender_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (messages && messages.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>To</th><th>Message</th><th>Date</th><th>Read</th></tr></thead><tbody>';
+                    messages.forEach(m => {
+                        html += `<tr>
+                            <td style="font-size:11px;color:#999">${m.receiver_id}</td>
+                            <td>${m.message}</td>
+                            <td>${new Date(m.created_at).toLocaleDateString()}</td>
+                            <td>${m.read ? '✅' : '⏳'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('sent-list').innerHTML = html;
+                } else {
+                    document.getElementById('sent-list').innerHTML = '<p>No messages sent yet.</p>';
+                }
+            }
+
+            async function sendMessage() {
+                const receiverId = document.getElementById('receiver-id').value;
+                const message = document.getElementById('message-text').value;
+
+                if (!receiverId || !message) {
+                    document.getElementById('send-msg').textContent = '⚠️ Please select a student and write a message!';
+                    return;
+                }
+
+                const { error } = await db.from('messages').insert({
+                    sender_id: currentUser.id,
+                    receiver_id: receiverId,
+                    message: message
+                });
+
+                if (error) {
+                    document.getElementById('send-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('send-msg').textContent = '✅ Message sent!';
+                    document.getElementById('message-text').value = '';
+                    loadSent();
+                }
+            }
+
+            load();
+        </script>
+    </body>
+</html>
