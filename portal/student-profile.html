@@ -34,6 +34,7 @@
                 </div>
 
                 <div class="section">
+
                     <div id="view-mode">
                         <div class="profile-card">
                             <div class="profile-avatar">
@@ -51,6 +52,7 @@
                                     <tr><td><b>Grade Level</b></td><td id="p-grade">—</td></tr>
                                 </table>
                                 <button onclick="showEditMode()" class="login-btn" style="margin-top:20px;width:auto;padding:10px 24px">✏️ Edit Profile</button>
+                                <button onclick="showPasswordMode()" class="login-btn" style="margin-top:10px;width:auto;padding:10px 24px;background:#e05c7a">🔒 Change Password</button>
                             </div>
                         </div>
                     </div>
@@ -75,7 +77,7 @@
                         </div>
                         <div class="form-group">
                             <label>Profile Picture</label>
-                             <input type="file" id="edit-avatar" accept="image/*">
+                            <input type="file" id="edit-avatar" accept="image/*">
                         </div>
                         <div style="display:flex;gap:12px">
                             <button onclick="saveProfile()" class="login-btn" style="width:auto;padding:10px 24px">💾 Save</button>
@@ -83,6 +85,28 @@
                         </div>
                         <p id="profile-msg" style="margin-top:12px"></p>
                     </div>
+
+                    <div id="password-mode" style="display:none">
+                        <h2 style="margin-bottom:20px">🔒 Change Password</h2>
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" id="current-password" placeholder="Enter current password">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" id="new-password" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" id="confirm-password" placeholder="Confirm new password">
+                        </div>
+                        <div style="display:flex;gap:12px">
+                            <button onclick="changePassword()" class="login-btn" style="width:auto;padding:10px 24px">💾 Save</button>
+                            <button onclick="hidePasswordMode()" style="padding:10px 24px;border:1.5px solid #e2e8f7;border-radius:8px;background:white;cursor:pointer;font-family:inherit;font-size:14px">Cancel</button>
+                        </div>
+                        <p id="password-msg" style="margin-top:12px"></p>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -111,11 +135,12 @@
                     document.getElementById('p-natid').textContent = student.national_id || '—';
                     document.getElementById('p-class').textContent = student.class || '—';
                     document.getElementById('p-grade').textContent = student.grade_level || '—';
+
                     if (student.photo_url) {
-                    document.getElementById('avatar-img').src = student.photo_url;
-                    document.getElementById('avatar-img').style.display = 'block';
-                    document.getElementById('avatar-placeholder').style.display = 'none';
-}
+                        document.getElementById('avatar-img').src = student.photo_url;
+                        document.getElementById('avatar-img').style.display = 'block';
+                        document.getElementById('avatar-placeholder').style.display = 'none';
+                    }
 
                     document.getElementById('edit-name').value = student.name || '';
                     document.getElementById('edit-dob').value = student.dob || '';
@@ -134,71 +159,127 @@
                 document.getElementById('view-mode').style.display = 'block';
             }
 
+            function showPasswordMode() {
+                document.getElementById('view-mode').style.display = 'none';
+                document.getElementById('password-mode').style.display = 'block';
+            }
+
+            function hidePasswordMode() {
+                document.getElementById('password-mode').style.display = 'none';
+                document.getElementById('view-mode').style.display = 'block';
+            }
+
             async function saveProfile() {
-    const name = document.getElementById('edit-name').value;
-    const dob = document.getElementById('edit-dob').value;
-    const natid = document.getElementById('edit-natid').value;
-    const regno = document.getElementById('edit-regno').value;
-    const avatarInput = document.getElementById('edit-avatar');
-    const avatarFile = avatarInput.files[0];
+                const name = document.getElementById('edit-name').value;
+                const dob = document.getElementById('edit-dob').value;
+                const natid = document.getElementById('edit-natid').value;
+                const regno = document.getElementById('edit-regno').value;
+                const avatarInput = document.getElementById('edit-avatar');
+                const avatarFile = avatarInput.files[0];
 
-    if (!name) {
-        document.getElementById('profile-msg').textContent = '⚠️ Name is required!';
-        return;
-    }
+                if (!name) {
+                    document.getElementById('profile-msg').textContent = '⚠️ Name is required!';
+                    return;
+                }
 
-    document.getElementById('profile-msg').textContent = '⏳ Saving...';
+                document.getElementById('profile-msg').textContent = '⏳ Saving...';
 
-    let photoUrl = null;
+                let photoUrl = null;
 
-    if (avatarFile) {
-        const fileName = currentUser.id + '_avatar_' + Date.now();
-        const { error: uploadError } = await db.storage
-            .from('avatars')
-            .upload(fileName, avatarFile, { upsert: true });
+                if (avatarFile) {
+                    const fileName = currentUser.id + '_avatar_' + Date.now();
+                    const { error: uploadError } = await db.storage
+                        .from('avatars')
+                        .upload(fileName, avatarFile, { upsert: true });
 
-        if (uploadError) {
-            document.getElementById('profile-msg').textContent = '❌ Photo upload failed: ' + uploadError.message;
-            return;
-        }
+                    if (uploadError) {
+                        document.getElementById('profile-msg').textContent = '❌ Photo upload failed: ' + uploadError.message;
+                        return;
+                    }
 
-        const { data: urlData } = db.storage
-            .from('avatars')
-            .getPublicUrl(fileName);
+                    const { data: urlData } = db.storage
+                        .from('avatars')
+                        .getPublicUrl(fileName);
 
-        photoUrl = urlData.publicUrl;
-    }
+                    photoUrl = urlData.publicUrl;
+                }
 
-    const updateData = {
-        name: name,
-        dob: dob,
-        national_id: natid,
-        reg_no: regno
-    };
+                const updateData = {
+                    name: name,
+                    dob: dob,
+                    national_id: natid,
+                    reg_no: regno
+                };
 
-    if (photoUrl) updateData.photo_url = photoUrl;
+                if (photoUrl) updateData.photo_url = photoUrl;
 
-    const { error } = await db
-        .from('students')
-        .update(updateData)
-        .eq('user_id', currentUser.id);
+                const { error } = await db
+                    .from('students')
+                    .update(updateData)
+                    .eq('user_id', currentUser.id);
 
-    if (error) {
-        document.getElementById('profile-msg').textContent = '❌ Error: ' + error.message;
-    } else {
-        document.getElementById('profile-msg').textContent = '✅ Profile saved!';
-        document.getElementById('p-name').textContent = name;
-        document.getElementById('p-dob').textContent = dob;
-        document.getElementById('p-natid').textContent = natid;
-        document.getElementById('p-regno').textContent = regno;
-        if (photoUrl) {
-            document.getElementById('avatar-img').src = photoUrl;
-            document.getElementById('avatar-img').style.display = 'block';
-            document.getElementById('avatar-placeholder').style.display = 'none';
-        }
-        setTimeout(() => hideEditMode(), 1000);
-    }
-}
+                if (error) {
+                    document.getElementById('profile-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('profile-msg').textContent = '✅ Profile saved!';
+                    document.getElementById('p-name').textContent = name;
+                    document.getElementById('p-dob').textContent = dob;
+                    document.getElementById('p-natid').textContent = natid;
+                    document.getElementById('p-regno').textContent = regno;
+                    if (photoUrl) {
+                        document.getElementById('avatar-img').src = photoUrl;
+                        document.getElementById('avatar-img').style.display = 'block';
+                        document.getElementById('avatar-placeholder').style.display = 'none';
+                    }
+                    setTimeout(() => hideEditMode(), 1000);
+                }
+            }
+
+            async function changePassword() {
+                const current = document.getElementById('current-password').value;
+                const newPass = document.getElementById('new-password').value;
+                const confirm = document.getElementById('confirm-password').value;
+
+                if (!current || !newPass || !confirm) {
+                    document.getElementById('password-msg').textContent = '⚠️ Please fill in all fields!';
+                    return;
+                }
+
+                if (newPass !== confirm) {
+                    document.getElementById('password-msg').textContent = '❌ New passwords do not match!';
+                    return;
+                }
+
+                if (newPass.length < 6) {
+                    document.getElementById('password-msg').textContent = '❌ Password must be at least 6 characters!';
+                    return;
+                }
+
+                const { data: check } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .eq('password', current)
+                    .single();
+
+                if (!check) {
+                    document.getElementById('password-msg').textContent = '❌ Current password is wrong!';
+                    return;
+                }
+
+                const { error } = await db
+                    .from('users')
+                    .update({ password: newPass })
+                    .eq('id', currentUser.id);
+
+                if (error) {
+                    document.getElementById('password-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('password-msg').textContent = '✅ Password changed successfully!';
+                    setTimeout(() => hidePasswordMode(), 1500);
+                }
+            }
+
             loadProfile();
         </script>
     </body>

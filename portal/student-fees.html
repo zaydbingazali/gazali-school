@@ -58,10 +58,19 @@
 
         <script>
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            let studentData = null;
 
             async function loadFees() {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if (!user) { window.location.href = 'login.html'; return; }
+
+                const { data: student } = await db
+                    .from('students')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+
+                studentData = student;
 
                 const { data: fees } = await db
                     .from('fees')
@@ -141,6 +150,8 @@
 
                 doc.setFont('helvetica', 'normal');
                 const details = [
+                    ['Student Name:', studentData ? (studentData.name || '—') : '—'],
+                    ['Registration No.:', studentData ? (studentData.reg_no || '—') : '—'],
                     ['Student Email:', user.email],
                     ['Term:', term],
                     ['Amount Paid:', '₹' + amount.toLocaleString()],
@@ -157,10 +168,10 @@
                 });
 
                 doc.setFillColor(240, 244, 255);
-                doc.rect(20, startY + 75, 170, 15, 'F');
+                doc.rect(20, startY + 95, 170, 15, 'F');
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(26, 39, 68);
-                doc.text('Total Amount Paid: ₹' + amount.toLocaleString(), 105, startY + 85, { align: 'center' });
+                doc.text('Total Amount Paid: ₹' + amount.toLocaleString(), 105, startY + 105, { align: 'center' });
 
                 doc.setTextColor(150, 150, 150);
                 doc.setFontSize(9);

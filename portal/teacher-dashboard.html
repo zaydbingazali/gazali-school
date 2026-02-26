@@ -14,11 +14,11 @@
                 <h2>🎓 Gazali</h2>
                 <p class="role-tag">Teacher Portal</p>
                 <nav>
-                    <a href="#students">👨‍🎓 My Students</a>
-                    <a href="#grades">📝 Enter Grades</a>
-                    <a href="#attendance">✅ Attendance</a>
-                    <a href="login.html">🚪 Logout</a>
+                    <a href="#students" class="nav-item">👨‍🎓 My Students</a>
+                    <a href="#grades" class="nav-item">📝 Enter Grades</a>
+                    <a href="#attendance" class="nav-item">✅ Attendance</a>
                     <a href="#upload" class="nav-item">📁 Upload Files</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
                 </nav>
             </div>
 
@@ -38,7 +38,7 @@
                     <div class="form-group">
                         <label>Select Student</label>
                         <select id="grade-student-id">
-                         <option value="">-- Select Student --</option>
+                            <option value="">-- Select Student --</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -69,9 +69,57 @@
                 <div class="section" id="attendance">
                     <h2>✅ Mark Attendance</h2>
                     <div id="attendance-list">Loading...</div>
+                    <p id="attendance-msg"></p>
                 </div>
 
-                <p id="attendance-msg"></p>
+                <div class="section" id="upload">
+                    <h2>📁 Upload Files</h2>
+                    <div class="form-group">
+                        <label>File Type</label>
+                        <select id="file-type">
+                            <option value="classwork">Classwork</option>
+                            <option value="homework">Homework</option>
+                            <option value="assignments">Assignments</option>
+                            <option value="circular">Circular</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Class</label>
+                        <select id="file-class">
+                            <option value="all">All Classes</option>
+                            <option value="1A">Grade 1A</option>
+                            <option value="1B">Grade 1B</option>
+                            <option value="2A">Grade 2A</option>
+                            <option value="2B">Grade 2B</option>
+                            <option value="3A">Grade 3A</option>
+                            <option value="3B">Grade 3B</option>
+                            <option value="4A">Grade 4A</option>
+                            <option value="4B">Grade 4B</option>
+                            <option value="5A">Grade 5A</option>
+                            <option value="5B">Grade 5B</option>
+                            <option value="6A">Grade 6A</option>
+                            <option value="6B">Grade 6B</option>
+                            <option value="7A">Grade 7A</option>
+                            <option value="7B">Grade 7B</option>
+                            <option value="8A">Grade 8A</option>
+                            <option value="8B">Grade 8B</option>
+                            <option value="9A">Grade 9A</option>
+                            <option value="9B">Grade 9B</option>
+                            <option value="10A">Grade 10A</option>
+                            <option value="10B">Grade 10B</option>
+                            <option value="11A">Grade 11A</option>
+                            <option value="11B">Grade 11B</option>
+                            <option value="12A">Grade 12A</option>
+                            <option value="12B">Grade 12B</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select File</label>
+                        <input type="file" id="file-input">
+                    </div>
+                    <button onclick="uploadFile()" class="login-btn">Upload</button>
+                    <p id="upload-msg"></p>
+                </div>
 
             </div>
         </div>
@@ -93,26 +141,26 @@
                     .select('*');
 
                 if (students && students.length > 0) {
-    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th><th>Grade Level</th></tr></thead><tbody>';
-    students.forEach(s => {
-        html += `<tr>
-            <td>${s.name}</td>
-            <td>${s.class}</td>
-            <td>${s.grade_level}</td>
-        </tr>`;
-    });
-    html += '</tbody></table>';
-    document.getElementById('students-list').innerHTML = html;
+                    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th><th>Grade Level</th></tr></thead><tbody>';
+                    students.forEach(s => {
+                        html += `<tr>
+                            <td>${s.name || '—'}</td>
+                            <td>${s.class || '—'}</td>
+                            <td>${s.grade_level || '—'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('students-list').innerHTML = html;
 
-    let dropdown = document.getElementById('grade-student-id');
-    students.forEach(s => {
-        dropdown.innerHTML += `<option value="${s.user_id}">${s.name}</option>`;
-    });
+                    let dropdown = document.getElementById('grade-student-id');
+                    students.forEach(s => {
+                        dropdown.innerHTML += `<option value="${s.user_id}">${s.name || s.user_id}</option>`;
+                    });
 
                     let attendHTML = '<table class="timetable"><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>';
                     students.forEach(s => {
                         attendHTML += `<tr>
-                            <td>${s.name}</td>
+                            <td>${s.name || '—'}</td>
                             <td>
                                 <button onclick="markAttendance('${s.user_id}', 'present')" class="att-btn present-btn">✅ Present</button>
                                 <button onclick="markAttendance('${s.user_id}', 'absent')" class="att-btn absent-btn">❌ Absent</button>
@@ -158,59 +206,62 @@
                     date: today,
                     status: status
                 });
-if (error) {
-    document.getElementById('attendance-msg').textContent = '❌ Error: ' + error.message;
-} else {
-    document.getElementById('attendance-msg').textContent = '✅ Attendance marked as ' + status + '!';
-}
+
+                if (error) {
+                    document.getElementById('attendance-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('attendance-msg').textContent = '✅ Attendance marked as ' + status + '!';
+                }
+            }
+
+            async function uploadFile() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const fileType = document.getElementById('file-type').value;
+                const fileClass = document.getElementById('file-class').value;
+                const fileInput = document.getElementById('file-input');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    document.getElementById('upload-msg').textContent = '⚠️ Please select a file!';
+                    return;
+                }
+
+                document.getElementById('upload-msg').textContent = '⏳ Uploading...';
+
+                const fileName = Date.now() + '_' + file.name;
+
+                const { error: storageError } = await db.storage
+                    .from('files')
+                    .upload(fileName, file, { upsert: true });
+
+                if (storageError) {
+                    document.getElementById('upload-msg').textContent = '❌ Storage error: ' + storageError.message;
+                    return;
+                }
+
+                const { data: urlData } = db.storage
+                    .from('files')
+                    .getPublicUrl(fileName);
+
+                const { error: dbError } = await db.from('files').insert({
+                    name: file.name,
+                    type: fileType,
+                    url: urlData.publicUrl,
+                    uploaded_by: user.id,
+                    class: fileClass
+                });
+
+                if (dbError) {
+                    document.getElementById('upload-msg').textContent = '❌ Database error: ' + dbError.message;
+                    return;
+                }
+
+                document.getElementById('upload-msg').textContent = '✅ File uploaded successfully!';
+                document.getElementById('file-input').value = '';
             }
 
             loadDashboard();
-
-            async function uploadFile() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const fileType = document.getElementById('file-type').value;
-    const fileInput = document.getElementById('file-input');
-    const file = fileInput.files[0];
-
-    if (!file) {
-        document.getElementById('upload-msg').textContent = '⚠️ Please select a file!';
-        return;
-    }
-
-    document.getElementById('upload-msg').textContent = '⏳ Uploading...';
-
-    const fileName = Date.now() + '_' + file.name;
-
-    const { data: storageData, error: storageError } = await db.storage
-        .from('files')
-        .upload(fileName, file, { upsert: true });
-
-    if (storageError) {
-        document.getElementById('upload-msg').textContent = '❌ Storage error: ' + storageError.message;
-        return;
-    }
-
-    const { data: urlData } = db.storage
-        .from('files')
-        .getPublicUrl(fileName);
-
-    const { error: dbError } = await db.from('files').insert({
-        name: file.name,
-        type: fileType,
-        url: urlData.publicUrl,
-        uploaded_by: user.id
-    });
-
-    if (dbError) {
-        document.getElementById('upload-msg').textContent = '❌ Database error: ' + dbError.message;
-        return;
-    }
-
-    document.getElementById('upload-msg').textContent = '✅ File uploaded successfully!';
-    document.getElementById('file-input').value = '';
-}
-</script>
+        </script>
 
     </body>
 </html>
