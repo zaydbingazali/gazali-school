@@ -97,6 +97,8 @@
             </div>
         </div>
         <script>
+            const user = requireAuth(['teacher']);
+if (!user) return;
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             function toggleSubject() {
