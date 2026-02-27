@@ -16,8 +16,6 @@
                     <p>Sign in to your account</p>
                 </div>
 
-            
-
                 <div class="form-group">
                     <label>Username</label>
                     <input type="text" id="username" placeholder="Enter your username">
@@ -37,47 +35,47 @@
         </div>
 
         <script>
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function login() {
-    let username = document.getElementById('username').value;
-    let password = document.getElementById('password').value;
+            async function login() {
+                let username = document.getElementById('username').value;
+                let password = document.getElementById('password').value;
 
-    if (username === '' || password === '') {
-        document.getElementById('error-msg').textContent = '⚠️ Please fill in all fields!';
-        return;
-    }
+                if (username === '' || password === '') {
+                    document.getElementById('error-msg').textContent = '⚠️ Please fill in all fields!';
+                    return;
+                }
 
-    const { data, error } = await db
-        .from('users')
-        .select('*')
-        .eq('email', username)
-        .eq('password', password)
-        .single();
+                const { data, error } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('email', username)
+                    .eq('password', password)
+                    .single();
 
-    if (error || !data) {
-        document.getElementById('error-msg').textContent = '❌ Wrong username or password!';
-        return;
-    }
+                if (error || !data) {
+                    document.getElementById('error-msg').textContent = '❌ Wrong username or password!';
+                    return;
+                }
 
-    if (userRecord.status === 'pending') {
-    document.getElementById('error-msg').textContent = '⏳ Your account is pending admin approval. Please wait!';
-    return;
-}
+                if (data.status === 'pending') {
+                    document.getElementById('error-msg').textContent = '⏳ Your account is pending admin approval. Please wait!';
+                    return;
+                }
 
-    localStorage.setItem('user', JSON.stringify(data));
+                localStorage.setItem('user', JSON.stringify(data));
 
-    if (data.role === 'student' || data.role === 'parent') {
-        window.location.href = 'student-dashboard.html';
-    } else if (data.role === 'teacher') {
-        window.location.href = 'teacher-dashboard.html';
-    } else if (data.role === 'principal') {
-        window.location.href = 'principal-dashboard.html';
-    } else if (data.role === 'admin') {
-    window.location.href = 'admin-dashboard.html';
-}
-}
-</script>
+                if (data.role === 'student' || data.role === 'parent') {
+                    window.location.href = 'student-dashboard.html';
+                } else if (data.role === 'teacher') {
+                    window.location.href = 'teacher-dashboard.html';
+                } else if (data.role === 'principal') {
+                    window.location.href = 'principal-dashboard.html';
+                } else if (data.role === 'admin') {
+                    window.location.href = 'admin-dashboard.html';
+                }
+            }
+        </script>
 
     </body>
 </html>
