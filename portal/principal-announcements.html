@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Announcements — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Principal Portal</p>
+                </div>
+                <nav>
+                    <a href="principal-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="principal-students.html" class="nav-item">👨‍🎓 Students</a>
+                    <a href="principal-teachers.html" class="nav-item">👩‍🏫 Teachers</a>
+                    <a href="principal-grades.html" class="nav-item">📊 Grades</a>
+                    <a href="principal-attendance.html" class="nav-item">📋 Attendance</a>
+                    <a href="principal-announcements.html" class="nav-item active">📢 Announcements</a>
+                    <a href="principal-adduser.html" class="nav-item">➕ Add User</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>📢 Announcements</h1>
+                    <p>Gazali International School</p>
+                </div>
+                <div class="section">
+                    <h2>Post New Announcement</h2>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="ann-title" placeholder="e.g. School closed Friday">
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="ann-message" placeholder="Write your announcement here..." style="width:100%;padding:12px;border-radius:10px;border:1.5px solid #e2e8f7;font-family:inherit;font-size:14px;min-height:100px;resize:vertical"></textarea>
+                    </div>
+                    <button onclick="postAnnouncement()" class="login-btn">📢 Post Announcement</button>
+                    <p id="ann-msg"></p>
+                </div>
+
+                <div class="section">
+                    <h2>📋 Posted Announcements</h2>
+                    <div id="announcements-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function loadAnnouncements() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                const { data: announcements } = await db
+                    .from('announcements')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (announcements && announcements.length > 0) {
+                    let html = '<table class="timetable"><thead><tr><th>Title</th><th>Message</th><th>Date</th><th>Action</th></tr></thead><tbody>';
+                    announcements.forEach(a => {
+                        html += `<tr>
+                            <td style="font-weight:700">${a.title}</td>
+                            <td>${a.message}</td>
+                            <td>${new Date(a.created_at).toLocaleDateString()}</td>
+                            <td><button onclick='deleteAnnouncement("${a.id}")' style="padding:4px 10px;border-radius:6px;border:none;background:#e05c7a;color:white;cursor:pointer;font-size:12px">🗑️ Delete</button></td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('announcements-list').innerHTML = html;
+                } else {
+                    document.getElementById('announcements-list').innerHTML = '<p>No announcements yet.</p>';
+                }
+            }
+
+            async function postAnnouncement() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const title = document.getElementById('ann-title').value.trim();
+                const message = document.getElementById('ann-message').value.trim();
+
+                if (!title || !message) {
+                    document.getElementById('ann-msg').textContent = '⚠️ Please fill in all fields!';
+                    return;
+                }
+
+                const { error } = await db.from('announcements').insert({
+                    title: title,
+                    message: message,
+                    posted_by: user.id
+                });
+
+                if (error) {
+                    document.getElementById('ann-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('ann-msg').textContent = '✅ Announcement posted!';
+                    document.getElementById('ann-title').value = '';
+                    document.getElementById('ann-message').value = '';
+                    loadAnnouncements();
+                }
+            }
+
+            async function deleteAnnouncement(id) {
+                if (!confirm('Delete this announcement?')) return;
+                const { error } = await db.from('announcements').delete().eq('id', id);
+                if (error) {
+                    alert('❌ Error: ' + error.message);
+                } else {
+                    loadAnnouncements();
+                }
+            }
+
+            loadAnnouncements();
+        </script>
+    </body>
+</html>

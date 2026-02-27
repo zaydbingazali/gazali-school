@@ -33,6 +33,10 @@
                     <h1 id="welcome-msg">Welcome! 👋</h1>
                     <p>Gazali International School</p>
                 </div>
+                <div class="section" id="announcements-section" style="margin-bottom:20px">
+    <h2>📢 Announcements</h2>
+    <div id="announcements-list">Loading...</div>
+</div>
                 <div class="subject-cards" id="subject-cards">Loading grades...</div>
                 <div class="dashboard-grid">
                     <div class="section">
@@ -68,6 +72,7 @@
                             <span class="subject-name">${g.subject}</span>
                             <span class="subject-score">${g.score}</span>
                         </div>`;
+                        loadAnnouncements();
                     });
                     document.getElementById('subject-cards').innerHTML = html;
                 } else {
@@ -97,6 +102,30 @@
                 html += '</div>';
                 document.getElementById('calendar').innerHTML = html;
             }
+            async function loadAnnouncements() {
+    const { data: announcements } = await db
+        .from('announcements')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    if (announcements && announcements.length > 0) {
+        let html = '';
+        announcements.forEach(a => {
+            html += `
+            <div style="background:linear-gradient(135deg,#f0f4ff,#e8effe);border-left:4px solid #4f8ef7;border-radius:10px;padding:14px 16px;margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <b style="color:#1a2744;font-size:15px">📌 ${a.title}</b>
+                    <span style="font-size:11px;color:#999">${new Date(a.created_at).toLocaleDateString()}</span>
+                </div>
+                <p style="margin:6px 0 0;color:#444;font-size:14px">${a.message}</p>
+            </div>`;
+        });
+        document.getElementById('announcements-list').innerHTML = html;
+    } else {
+        document.getElementById('announcements-list').innerHTML = '<p style="color:#999">No announcements yet.</p>';
+    }
+}
 
             loadDashboard();
         </script>
