@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Register — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="login-wrapper">
+            <div class="login-box">
+                <div class="login-logo">🎓</div>
+                <h1 class="login-title">Gazali International School</h1>
+                <p class="login-subtitle">Student Registration</p>
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="reg-name" placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" id="reg-email" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg-password" placeholder="Create a password">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="reg-confirm" placeholder="Confirm your password">
+                </div>
+                <div class="form-group">
+                    <label>Class</label>
+                    <select id="reg-class">
+                        <option value="">-- Select Class --</option>
+                        <option value="1A">Grade 1A</option>
+                        <option value="1B">Grade 1B</option>
+                        <option value="2A">Grade 2A</option>
+                        <option value="2B">Grade 2B</option>
+                        <option value="3A">Grade 3A</option>
+                        <option value="3B">Grade 3B</option>
+                        <option value="4A">Grade 4A</option>
+                        <option value="4B">Grade 4B</option>
+                        <option value="5A">Grade 5A</option>
+                        <option value="5B">Grade 5B</option>
+                        <option value="6A">Grade 6A</option>
+                        <option value="6B">Grade 6B</option>
+                        <option value="7A">Grade 7A</option>
+                        <option value="7B">Grade 7B</option>
+                        <option value="8A">Grade 8A</option>
+                        <option value="8B">Grade 8B</option>
+                        <option value="9A">Grade 9A</option>
+                        <option value="9B">Grade 9B</option>
+                        <option value="10A">Grade 10A</option>
+                        <option value="10B">Grade 10B</option>
+                        <option value="11A">Grade 11A</option>
+                        <option value="11B">Grade 11B</option>
+                        <option value="12A">Grade 12A</option>
+                        <option value="12B">Grade 12B</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="reg-dob">
+                </div>
+                <div class="form-group">
+                    <label>National ID</label>
+                    <input type="text" id="reg-natid" placeholder="Enter your national ID">
+                </div>
+
+                <button onclick="register()" class="login-btn">Register</button>
+                <p id="reg-msg" style="margin-top:12px;text-align:center"></p>
+                <p style="text-align:center;margin-top:16px;font-size:14px;color:#999">Already have an account? <a href="login.html" style="color:#4f8ef7;font-weight:600">Login</a></p>
+            </div>
+        </div>
+
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function register() {
+                const name = document.getElementById('reg-name').value.trim();
+                const email = document.getElementById('reg-email').value.trim();
+                const password = document.getElementById('reg-password').value;
+                const confirm = document.getElementById('reg-confirm').value;
+                const cls = document.getElementById('reg-class').value;
+                const dob = document.getElementById('reg-dob').value;
+                const natid = document.getElementById('reg-natid').value.trim();
+
+                if (!name || !email || !password || !confirm || !cls) {
+                    document.getElementById('reg-msg').textContent = '⚠️ Please fill in all required fields!';
+                    return;
+                }
+
+                if (password !== confirm) {
+                    document.getElementById('reg-msg').textContent = '❌ Passwords do not match!';
+                    return;
+                }
+
+                if (password.length < 6) {
+                    document.getElementById('reg-msg').textContent = '❌ Password must be at least 6 characters!';
+                    return;
+                }
+
+                const { data: existing } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('email', email)
+                    .single();
+
+                if (existing) {
+                    document.getElementById('reg-msg').textContent = '❌ Email already registered!';
+                    return;
+                }
+
+                document.getElementById('reg-msg').textContent = '⏳ Submitting...';
+
+                const newId = crypto.randomUUID();
+
+                const { error: userError } = await db.from('users').insert({
+                    id: newId,
+                    email: email,
+                    password: password,
+                    role: 'student',
+                    status: 'pending'
+                });
+
+                if (userError) {
+                    document.getElementById('reg-msg').textContent = '❌ Error: ' + userError.message;
+                    return;
+                }
+
+                const gradeMap = {
+                    '1A':'Grade 1','1B':'Grade 1','2A':'Grade 2','2B':'Grade 2',
+                    '3A':'Grade 3','3B':'Grade 3','4A':'Grade 4','4B':'Grade 4',
+                    '5A':'Grade 5','5B':'Grade 5','6A':'Grade 6','6B':'Grade 6',
+                    '7A':'Grade 7','7B':'Grade 7','8A':'Grade 8','8B':'Grade 8',
+                    '9A':'Grade 9','9B':'Grade 9','10A':'Grade 10','10B':'Grade 10',
+                    '11A':'Grade 11','11B':'Grade 11','12A':'Grade 12','12B':'Grade 12'
+                };
+
+                const { error: studentError } = await db.from('students').insert({
+                    user_id: newId,
+                    name: name,
+                    class: cls,
+                    grade_level: gradeMap[cls],
+                    dob: dob || null,
+                    national_id: natid || null
+                });
+
+                if (studentError) {
+                    document.getElementById('reg-msg').textContent = '❌ Error: ' + studentError.message;
+                    return;
+                }
+
+                document.getElementById('reg-msg').style.color = '#00c9a7';
+                document.getElementById('reg-msg').textContent = '✅ Registration submitted! Please wait for admin approval before logging in.';
+
+                document.getElementById('reg-name').value = '';
+                document.getElementById('reg-email').value = '';
+                document.getElementById('reg-password').value = '';
+                document.getElementById('reg-confirm').value = '';
+                document.getElementById('reg-class').value = '';
+                document.getElementById('reg-dob').value = '';
+                document.getElementById('reg-natid').value = '';
+            }
+        </script>
+    </body>
+</html>

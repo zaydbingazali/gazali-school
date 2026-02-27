@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Pending Requests — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Admin Portal</p>
+                </div>
+                <nav>
+                    <a href="admin-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="admin-students.html" class="nav-item">👨‍🎓 Students</a>
+                    <a href="admin-teachers.html" class="nav-item">👩‍🏫 Teachers</a>
+                    <a href="admin-fees.html" class="nav-item">💰 Manage Fees</a>
+                    <a href="admin-attendance.html" class="nav-item">📋 Attendance</a>
+                    <a href="admin-circulars.html" class="nav-item">📢 Circulars</a>
+                    <a href="admin-requests.html" class="nav-item active">📋 Pending Requests</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>📋 Pending Requests</h1>
+                    <p>Gazali International School</p>
+                </div>
+                <div class="section">
+                    <div id="requests-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            async function loadRequests() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+
+                const { data: pending } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('status', 'pending')
+                    .eq('role', 'student');
+
+                if (pending && pending.length > 0) {
+                    let html = `<table class="timetable">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>National ID</th>
+                                <th>DOB</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                    for (const u of pending) {
+                        const { data: student } = await db
+                            .from('students')
+                            .select('*')
+                            .eq('user_id', u.id)
+                            .single();
+
+                        html += `<tr>
+                            <td>${u.email}</td>
+                            <td>${student ? student.name : '—'}</td>
+                            <td>${student ? student.class : '—'}</td>
+                            <td>${student ? (student.national_id || '—') : '—'}</td>
+                            <td>${student ? (student.dob || '—') : '—'}</td>
+                            <td style="display:flex;gap:8px">
+                                <button onclick='approve("${u.id}")' style="padding:5px 12px;border-radius:6px;border:none;background:#00c9a7;color:white;cursor:pointer;font-size:12px;font-weight:700">✅ Approve</button>
+                                <button onclick='reject("${u.id}")' style="padding:5px 12px;border-radius:6px;border:none;background:#e05c7a;color:white;cursor:pointer;font-size:12px;font-weight:700">❌ Reject</button>
+                            </td>
+                        </tr>`;
+                    }
+
+                    html += '</tbody></table>';
+                    document.getElementById('requests-list').innerHTML = html;
+                } else {
+                    document.getElementById('requests-list').innerHTML = '<p>No pending requests! 🎉</p>';
+                }
+            }
+
+            async function approve(userId) {
+                const { error } = await db
+                    .from('users')
+                    .update({ status: 'active' })
+                    .eq('id', userId);
+
+                if (error) {
+                    alert('❌ Error: ' + error.message);
+                } else {
+                    alert('✅ Student approved!');
+                    loadRequests();
+                }
+            }
+
+            async function reject(userId) {
+                if (!confirm('Are you sure you want to reject this student?')) return;
+
+                const { error: studentError } = await db
+                    .from('students')
+                    .delete()
+                    .eq('user_id', userId);
+
+                const { error: userError } = await db
+                    .from('users')
+                    .delete()
+                    .eq('id', userId);
+
+                if (userError || studentError) {
+                    alert('❌ Error deleting user');
+                } else {
+                    alert('🗑️ Student rejected and removed!');
+                    loadRequests();
+                }
+            }
+
+            loadRequests();
+        </script>
+    </body>
+</html>

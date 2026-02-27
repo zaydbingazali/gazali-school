@@ -20,6 +20,7 @@
                     <a href="admin-fees.html" class="nav-item">💰 Manage Fees</a>
                     <a href="admin-attendance.html" class="nav-item">📋 Attendance</a>
                     <a href="admin-circulars.html" class="nav-item">📢 Circulars</a>
+                    <a href="admin-requests.html" class="nav-item">📋 Pending Requests</a>
                     <a href="login.html" class="nav-item logout">🚪 Logout</a>
                 </nav>
             </div>
@@ -46,6 +47,10 @@
                         <span class="subject-name">Circulars Sent</span>
                         <span class="subject-score" id="circulars-sent">0</span>
                     </div>
+                    <div class="subject-card" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)">
+    <span class="subject-name">Pending Requests</span>
+    <span class="subject-score" id="pending-requests">0</span>
+</div>
                 </div>
 
                 <div class="dashboard-grid">
@@ -88,6 +93,9 @@
                 if (circulars) document.getElementById('circulars-sent').textContent = circulars.length;
 
                 renderCalendar();
+
+                const { data: pending } = await db.from('users').select('*').eq('status', 'pending');
+if (pending) document.getElementById('pending-requests').textContent = pending.length;
             }
 
             function renderCalendar() {

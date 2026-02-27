@@ -29,6 +29,7 @@
                 </div>
 
                 <button onclick="login()" class="login-btn">Sign In</button>
+                <p style="text-align:center;margin-top:16px;font-size:14px;color:#999">New student? <a href="register.html" style="color:#4f8ef7;font-weight:600">Register here</a></p>
 
                 <p id="error-msg"></p>
 
@@ -58,6 +59,11 @@
         document.getElementById('error-msg').textContent = '❌ Wrong username or password!';
         return;
     }
+
+    if (userRecord.status === 'pending') {
+    document.getElementById('error-msg').textContent = '⏳ Your account is pending admin approval. Please wait!';
+    return;
+}
 
     localStorage.setItem('user', JSON.stringify(data));
 
