@@ -31,11 +31,24 @@
                 <div class="section">
                     <div class="form-group">
                         <label>File Type</label>
-                        <select id="file-type">
+                        <select id="file-type" onchange="toggleSubject()">
                             <option value="classwork">Classwork</option>
                             <option value="homework">Homework</option>
                             <option value="assignments">Assignments</option>
                             <option value="circular">Circular</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="subject-group">
+                        <label>Subject</label>
+                        <select id="file-subject">
+                            <option value="">-- Select Subject --</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="English">English</option>
+                            <option value="Science">Science</option>
+                            <option value="Islamic Studies">Islamic Studies</option>
+                            <option value="Arabic">Arabic</option>
+                            <option value="History">History</option>
+                            <option value="Geography">Geography</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -86,6 +99,12 @@
         <script>
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+            function toggleSubject() {
+                const fileType = document.getElementById('file-type').value;
+                const subjectGroup = document.getElementById('subject-group');
+                subjectGroup.style.display = fileType === 'circular' ? 'none' : 'block';
+            }
+
             function selectAllClasses() {
                 document.querySelectorAll('#class-checkboxes input[type="checkbox"]').forEach(cb => cb.checked = true);
             }
@@ -106,13 +125,15 @@
                 const { data: files } = await db.from('files').select('*').eq('uploaded_by', user.id).order('created_at', { ascending: false });
 
                 if (files && files.length > 0) {
-                    let html = '<table class="timetable"><thead><tr><th>File Name</th><th>Type</th><th>Class</th><th>Date</th></tr></thead><tbody>';
+                    let html = '<table class="timetable"><thead><tr><th>File Name</th><th>Type</th><th>Subject</th><th>Class</th><th>Date</th><th>Action</th></tr></thead><tbody>';
                     files.forEach(f => {
                         html += `<tr>
                             <td><a href="${f.url}" target="_blank" style="color:#4f8ef7">${f.name}</a></td>
                             <td style="text-transform:capitalize">${f.type}</td>
+                            <td>${f.subject || '—'}</td>
                             <td>${f.class || 'all'}</td>
                             <td>${new Date(f.created_at).toLocaleDateString()}</td>
+                            <td><button onclick='deleteFile("${f.id}")' style="padding:4px 10px;border-radius:6px;border:none;background:#e05c7a;color:white;cursor:pointer;font-size:12px">🗑️ Delete</button></td>
                         </tr>`;
                     });
                     html += '</tbody></table>';
@@ -122,15 +143,31 @@
                 }
             }
 
+            async function deleteFile(fileId) {
+                if (!confirm('Are you sure you want to delete this file?')) return;
+                const { error } = await db.from('files').delete().eq('id', fileId);
+                if (error) {
+                    alert('❌ Error: ' + error.message);
+                } else {
+                    loadUploaded();
+                }
+            }
+
             async function uploadFile() {
                 const user = JSON.parse(localStorage.getItem('user'));
                 const fileType = document.getElementById('file-type').value;
+                const fileSubject = document.getElementById('file-subject') ? document.getElementById('file-subject').value : null;
                 const selectedClasses = getSelectedClasses();
                 const fileInput = document.getElementById('file-input');
                 const file = fileInput.files[0];
 
                 if (!file) {
                     document.getElementById('upload-msg').textContent = '⚠️ Please select a file!';
+                    return;
+                }
+
+                if (fileType !== 'circular' && !fileSubject) {
+                    document.getElementById('upload-msg').textContent = '⚠️ Please select a subject!';
                     return;
                 }
 
@@ -154,6 +191,7 @@
                 const inserts = selectedClasses.map(cls => ({
                     name: file.name,
                     type: fileType,
+                    subject: fileType !== 'circular' ? fileSubject : null,
                     url: urlData.publicUrl,
                     uploaded_by: user.id,
                     class: cls

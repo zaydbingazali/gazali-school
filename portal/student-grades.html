@@ -34,39 +34,82 @@
                     <p>Gazali International School</p>
                 </div>
                 <div class="section">
+                    <div class="form-group" style="max-width:200px">
+                        <label>Select Term</label>
+                        <select id="term-select" onchange="loadGrades()">
+                            <option value="1">Term 1</option>
+                            <option value="2">Term 2</option>
+                            <option value="3">Term 3</option>
+                        </select>
+                    </div>
                     <div id="grades-list">Loading...</div>
                 </div>
             </div>
         </div>
         <script>
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const subjects = ['Mathematics', 'English', 'Science', 'Islamic Studies', 'Arabic', 'History', 'Geography'];
+
             async function loadGrades() {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if (!user) { window.location.href = 'login.html'; return; }
 
+                const term = document.getElementById('term-select').value;
+
                 const { data: grades } = await db
                     .from('grades')
                     .select('*')
-                    .eq('student_id', user.id);
+                    .eq('student_id', user.id)
+                    .eq('term', term);
 
-                if (grades && grades.length > 0) {
-                    let html = '<table class="timetable"><thead><tr><th>Subject</th><th>Score</th><th>Term</th><th>Grade</th></tr></thead><tbody>';
-                    grades.forEach(g => {
-                        const letter = g.score >= 90 ? 'A+' : g.score >= 80 ? 'A' : g.score >= 70 ? 'B' : g.score >= 60 ? 'C' : 'F';
-                        const color = g.score >= 80 ? '#00c9a7' : g.score >= 60 ? '#f7a84f' : '#e05c7a';
-                        html += `<tr>
-                            <td>${g.subject}</td>
-                            <td style="font-weight:700;color:${color}">${g.score}/100</td>
-                            <td>Term ${g.term}</td>
-                            <td style="font-weight:800;color:${color}">${letter}</td>
-                        </tr>`;
-                    });
-                    html += '</tbody></table>';
-                    document.getElementById('grades-list').innerHTML = html;
-                } else {
-                    document.getElementById('grades-list').innerHTML = '<p>No grades yet.</p>';
+                let totalScore = 0;
+                let subjectCount = 0;
+
+                let html = `<table class="timetable">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Score</th>
+                            <th>Grade</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                subjects.forEach(subject => {
+                    const found = grades ? grades.find(g => g.subject === subject) : null;
+                    if (found) {
+                        totalScore += found.score;
+                        subjectCount++;
+                    }
+                    const score = found ? found.score : null;
+                    const letter = score !== null ? (score >= 90 ? 'A+' : score >= 80 ? 'A' : score >= 70 ? 'B' : score >= 60 ? 'C' : 'F') : '—';
+                    const color = score !== null ? (score >= 80 ? '#00c9a7' : score >= 60 ? '#f7a84f' : '#e05c7a') : '#ccc';
+                    const remarks = score !== null ? (score >= 90 ? 'Excellent' : score >= 80 ? 'Very Good' : score >= 70 ? 'Good' : score >= 60 ? 'Pass' : 'Fail') : 'Not graded';
+
+                    html += `<tr>
+                        <td style="font-weight:600">${subject}</td>
+                        <td style="font-weight:700;color:${color}">${score !== null ? score + '/100' : '—'}</td>
+                        <td><span style="background:${color}22;color:${color};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">${letter}</span></td>
+                        <td style="color:${color};font-size:13px">${remarks}</td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+
+                if (subjectCount > 0) {
+                    const avg = (totalScore / subjectCount).toFixed(1);
+                    const avgColor = avg >= 80 ? '#00c9a7' : avg >= 60 ? '#f7a84f' : '#e05c7a';
+                    html += `<div style="margin-top:16px;padding:16px;background:#f0f4ff;border-radius:12px;display:flex;gap:32px">
+                        <div><span style="color:#999;font-size:13px">Total Score</span><br><b style="font-size:20px;color:#1a2744">${totalScore}/${subjectCount * 100}</b></div>
+                        <div><span style="color:#999;font-size:13px">Average</span><br><b style="font-size:20px;color:${avgColor}">${avg}%</b></div>
+                        <div><span style="color:#999;font-size:13px">Subjects Graded</span><br><b style="font-size:20px;color:#1a2744">${subjectCount}/${subjects.length}</b></div>
+                    </div>`;
                 }
+
+                document.getElementById('grades-list').innerHTML = html;
             }
+
             loadGrades();
         </script>
     </body>

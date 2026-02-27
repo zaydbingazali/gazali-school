@@ -98,18 +98,29 @@
 
                 const { data: files } = await db.from('files').select('*').eq('type', 'circular').order('created_at', { ascending: false });
                 if (files && files.length > 0) {
-                    let html = '<table class="timetable"><thead><tr><th>File Name</th><th>Class</th><th>Date</th></tr></thead><tbody>';
+                    let html = '<table class="timetable"><thead><tr><th>File Name</th><th>Class</th><th>Date</th><th>Action</th></tr></thead><tbody>';
                     files.forEach(f => {
                         html += `<tr>
                             <td><a href="${f.url}" target="_blank" style="color:#4f8ef7">${f.name}</a></td>
                             <td>${f.class || 'all'}</td>
                             <td>${new Date(f.created_at).toLocaleDateString()}</td>
+                            <td><button onclick='deleteCircular("${f.id}")' style="padding:4px 10px;border-radius:6px;border:none;background:#e05c7a;color:white;cursor:pointer;font-size:12px">🗑️ Delete</button></td>
                         </tr>`;
                     });
                     html += '</tbody></table>';
                     document.getElementById('circulars-list').innerHTML = html;
                 } else {
                     document.getElementById('circulars-list').innerHTML = '<p>No circulars uploaded yet.</p>';
+                }
+            }
+
+            async function deleteCircular(fileId) {
+                if (!confirm('Are you sure you want to delete this circular?')) return;
+                const { error } = await db.from('files').delete().eq('id', fileId);
+                if (error) {
+                    alert('❌ Error: ' + error.message);
+                } else {
+                    loadCirculars();
                 }
             }
 
