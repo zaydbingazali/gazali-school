@@ -7,6 +7,12 @@
         <script src="config.js"></script>
     </head>
     <body>
+        <script>
+(function() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'principal') window.location.href = 'login.html';
+})();
+</script>
         <div class="portal-wrapper">
             <div class="sidebar">
                 <div class="sidebar-logo">
@@ -53,8 +59,7 @@
             </div>
         </div>
         <script>
-            const user = requireAuth(['principal']);
-if (!user) return;
+            
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             async function addUser() {
