@@ -191,8 +191,11 @@
 
                 <div class="chat-wrapper">
                     <div class="chat-sidebar">
-                        <div class="chat-sidebar-header">👨‍🎓 Students</div>
-                        <div id="students-list">Loading...</div>
+                       <div class="chat-sidebar-header">👨‍🎓 Students</div>
+<div style="padding:10px">
+    <input type="text" id="people-search" placeholder="Search students..." oninput="filterList()" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid #e2e8f7;font-family:inherit;font-size:13px;box-sizing:border-box;outline:none">
+</div>
+<div id="students-list">Loading...</div>
                     </div>
                     <div class="chat-main" id="chat-main">
                         <div class="chat-empty">👈 Select a student to start chatting</div>
@@ -323,6 +326,16 @@
                     renderStudentList(allStudents);
                 }
             }
+
+            function filterList() {
+    const query = document.getElementById('people-search').value.toLowerCase();
+    const filtered = allStudents.filter(s =>
+        (s.name && s.name.toLowerCase().includes(query)) ||
+        (s.class && s.class.toLowerCase().includes(query))
+    );
+    renderStudentList(filtered);
+}
+
 
             load();
         </script>
