@@ -5,14 +5,57 @@
         <link rel="stylesheet" href="portal.css">
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script src="config.js"></script>
+        <style>
+            .file-list { display: flex; flex-direction: column; }
+            .file-item {
+                display: flex;
+                align-items: center;
+                padding: 14px 16px;
+                border-bottom: 1px solid #f0f4ff;
+                gap: 16px;
+                cursor: pointer;
+                text-decoration: none;
+                color: inherit;
+                transition: background 0.15s;
+            }
+            .file-item:hover { background: #f8f9ff; }
+            .file-date-badge {
+                background: #4f8ef7;
+                color: white;
+                border-radius: 6px 12px 12px 6px;
+                padding: 5px 14px 5px 10px;
+                font-size: 12px;
+                font-weight: 600;
+                white-space: nowrap;
+                min-width: 90px;
+                text-align: center;
+            }
+            .file-name {
+                flex: 1;
+                font-size: 14px;
+                color: #1a2744;
+            }
+            .file-name.unread { font-weight: 700; }
+            .file-name.read { font-weight: 400; color: #555; }
+            .file-eye { color: #bbb; font-size: 18px; }
+            .file-subject-tag {
+                font-size: 11px;
+                background: #f0f4ff;
+                color: #4f8ef7;
+                padding: 3px 10px;
+                border-radius: 20px;
+                font-weight: 600;
+                white-space: nowrap;
+            }
+        </style>
     </head>
     <body>
         <script>
-(function() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || (user.role !== 'student' && user.role !== 'parent')) window.location.href = 'login.html';
-})();
-</script>
+        (function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || (user.role !== 'student' && user.role !== 'parent')) window.location.href = 'login.html';
+        })();
+        </script>
         <div class="portal-wrapper">
             <div class="sidebar">
                 <div class="sidebar-logo">
@@ -45,33 +88,60 @@
             </div>
         </div>
         <script>
-            
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
             async function loadFiles() {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if (!user) { window.location.href = 'login.html'; return; }
+
+                const { data: student } = await db.from('students').select('*').eq('user_id', user.id).single();
+                const studentClass = student ? student.class : null;
 
                 const { data: files } = await db
                     .from('files')
                     .select('*')
                     .eq('type', 'classwork')
+                    .or(studentClass ? `class.eq.${studentClass},class.eq.all` : 'class.eq.all')
                     .order('created_at', { ascending: false });
 
+                const { data: reads } = await db
+                    .from('file_reads')
+                    .select('file_id')
+                    .eq('user_id', user.id);
+
+                const readIds = reads ? reads.map(r => r.file_id) : [];
+
                 if (files && files.length > 0) {
-                    let html = '<table class="timetable"><thead><tr><th>File Name</th><th>Date</th><th>Download</th></tr></thead><tbody>';
+                    let html = '<div class="file-list">';
                     files.forEach(f => {
-                        html += `<tr>
-                            <td>${f.name}</td>
-                            <td>${new Date(f.created_at).toLocaleDateString()}</td>
-                            <td><a href="${f.url}" target="_blank" class="btn" style="padding:6px 14px;font-size:12px">⬇ Download</a></td>
-                        </tr>`;
+                        const isRead = readIds.includes(f.id);
+                        const dateStr = new Date(f.created_at).toLocaleDateString('en-GB').replace(/\//g, '-');
+                        html += `<a href="${f.url}" target="_blank" class="file-item" onclick="markRead('${f.id}', '${user.id}')">
+                            <div class="file-date-badge">${dateStr}</div>
+                            ${f.subject ? `<span class="file-subject-tag">${f.subject}</span>` : ''}
+                            <div class="file-name ${isRead ? 'read' : 'unread'}">${f.name}</div>
+                            <span class="file-eye">👁</span>
+                        </a>`;
                     });
-                    html += '</tbody></table>';
+                    html += '</div>';
                     document.getElementById('files-list').innerHTML = html;
                 } else {
                     document.getElementById('files-list').innerHTML = '<p>No classwork uploaded yet.</p>';
                 }
             }
+
+            async function markRead(fileId, userId) {
+                const { data: existing } = await db
+                    .from('file_reads')
+                    .select('*')
+                    .eq('file_id', fileId)
+                    .eq('user_id', userId)
+                    .single();
+                if (!existing) {
+                    await db.from('file_reads').insert({ file_id: fileId, user_id: userId });
+                }
+            }
+
             loadFiles();
         </script>
     </body>
