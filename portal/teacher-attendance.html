@@ -8,11 +8,11 @@
     </head>
     <body>
         <script>
-(function() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || user.role !== 'teacher') window.location.href = 'login.html';
-})();
-</script>
+        (function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || user.role !== 'teacher') window.location.href = 'login.html';
+        })();
+        </script>
         <div class="portal-wrapper">
             <div class="sidebar">
                 <div class="sidebar-logo">
@@ -21,6 +21,7 @@
                 </div>
                 <nav>
                     <a href="teacher-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="teacher-profile.html" class="nav-item">👤 Profile</a>
                     <a href="teacher-students.html" class="nav-item">👨‍🎓 My Students</a>
                     <a href="teacher-grades.html" class="nav-item">📝 Enter Grades</a>
                     <a href="teacher-attendance.html" class="nav-item active">✅ Attendance</a>
@@ -36,13 +37,13 @@
                 </div>
                 <div class="section">
                     <p style="color:#999;margin-bottom:16px">Today: <b style="color:#1a2744" id="today-date"></b></p>
+                    <div id="class-info" style="margin-bottom:16px"></div>
                     <div id="attendance-list">Loading...</div>
                     <p id="attendance-msg"></p>
                 </div>
             </div>
         </div>
         <script>
-            
             const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             async function loadStudents() {
@@ -50,14 +51,59 @@
                 if (!user) { window.location.href = 'login.html'; return; }
 
                 document.getElementById('today-date').textContent = new Date().toLocaleDateString();
+                const today = new Date().toISOString().split('T')[0];
 
-                const { data: students } = await db.from('students').select('*');
-                if (students && students.length > 0) {
-                    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Class</th><th>Status</th></tr></thead><tbody>';
+                const { data: teacher } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (!teacher.class_teacher) {
+                    document.getElementById('attendance-list').innerHTML = '<p style="color:#e05c7a">⚠️ You have not set a class in your profile yet. Please go to your profile and set your class first.</p>';
+                    return;
+                }
+
+                document.getElementById('class-info').innerHTML = `<div style="background:#f0f4ff;padding:12px 16px;border-radius:10px;display:inline-block"><b style="color:#1a2744">📚 Your Class: Grade ${teacher.class_teacher}</b></div>`;
+
+                const { data: students } = await db
+                    .from('students')
+                    .select('*')
+                    .eq('class', teacher.class_teacher);
+
+                if (!students || students.length === 0) {
+                    document.getElementById('attendance-list').innerHTML = '<p>No students in your class yet.</p>';
+                    return;
+                }
+
+                const { data: todayAttendance } = await db
+                    .from('attendance')
+                    .select('*')
+                    .eq('date', today)
+                    .in('student_id', students.map(s => s.user_id));
+
+                const alreadyMarked = todayAttendance && todayAttendance.length > 0;
+
+                if (alreadyMarked) {
+                    let html = `<div style="background:#fff3cd;border:1.5px solid #f7a84f;border-radius:10px;padding:12px 16px;margin-bottom:16px;color:#856404">
+                        ⚠️ Attendance already marked for today!
+                    </div>`;
+                    html += '<table class="timetable"><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>';
+                    students.forEach(s => {
+                        const record = todayAttendance.find(a => a.student_id === s.user_id);
+                        const color = record ? (record.status === 'present' ? '#00c9a7' : record.status === 'absent' ? '#e05c7a' : '#f7a84f') : '#999';
+                        html += `<tr>
+                            <td>${s.name || '—'}</td>
+                            <td style="color:${color};font-weight:700;text-transform:capitalize">${record ? record.status : '—'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('attendance-list').innerHTML = html;
+                } else {
+                    let html = '<table class="timetable"><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>';
                     students.forEach(s => {
                         html += `<tr>
                             <td>${s.name || '—'}</td>
-                            <td>${s.class || '—'}</td>
                             <td>
                                 <button onclick="markAttendance('${s.user_id}', 'present')" class="att-btn present-btn">✅ Present</button>
                                 <button onclick="markAttendance('${s.user_id}', 'absent')" class="att-btn absent-btn">❌ Absent</button>
@@ -66,22 +112,43 @@
                         </tr>`;
                     });
                     html += '</tbody></table>';
+                    html += `<button onclick="submitAllAttendance()" class="login-btn" style="margin-top:16px" id="submit-btn">✅ Submit All Attendance</button>`;
                     document.getElementById('attendance-list').innerHTML = html;
                 }
             }
 
+            const attendanceMap = {};
+
             async function markAttendance(studentId, status) {
+                attendanceMap[studentId] = status;
+                document.getElementById('attendance-msg').textContent = `✏️ ${Object.keys(attendanceMap).length} student(s) marked — click Submit when done!`;
+            }
+
+            async function submitAllAttendance() {
                 const today = new Date().toISOString().split('T')[0];
-                const { error } = await db.from('attendance').insert({
+
+                if (Object.keys(attendanceMap).length === 0) {
+                    document.getElementById('attendance-msg').textContent = '⚠️ Please mark at least one student!';
+                    return;
+                }
+
+                document.getElementById('attendance-msg').textContent = '⏳ Submitting...';
+                document.getElementById('submit-btn').disabled = true;
+
+                const inserts = Object.entries(attendanceMap).map(([studentId, status]) => ({
                     student_id: studentId,
                     date: today,
                     status: status
-                });
+                }));
+
+                const { error } = await db.from('attendance').insert(inserts);
 
                 if (error) {
                     document.getElementById('attendance-msg').textContent = '❌ Error: ' + error.message;
+                    document.getElementById('submit-btn').disabled = false;
                 } else {
-                    document.getElementById('attendance-msg').textContent = '✅ Attendance marked as ' + status + '!';
+                    document.getElementById('attendance-msg').textContent = '✅ Attendance submitted successfully!';
+                    loadStudents();
                 }
             }
 

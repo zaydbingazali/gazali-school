@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Profile — Gazali International School</title>
+        <link rel="stylesheet" href="portal.css">
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="config.js"></script>
+    </head>
+    <body>
+        <script>
+        (function() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || user.role !== 'teacher') window.location.href = 'login.html';
+        })();
+        </script>
+        <div class="portal-wrapper">
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <h2>🎓 Gazali</h2>
+                    <p class="role-tag">Teacher Portal</p>
+                </div>
+                <nav>
+                    <a href="teacher-dashboard.html" class="nav-item">🏠 Dashboard</a>
+                    <a href="teacher-profile.html" class="nav-item active">👤 Profile</a>
+                    <a href="teacher-students.html" class="nav-item">👨‍🎓 My Students</a>
+                    <a href="teacher-grades.html" class="nav-item">📝 Enter Grades</a>
+                    <a href="teacher-attendance.html" class="nav-item">✅ Attendance</a>
+                    <a href="teacher-upload.html" class="nav-item">📁 Upload Files</a>
+                    <a href="teacher-messages.html" class="nav-item">💬 Messages</a>
+                    <a href="login.html" class="nav-item logout">🚪 Logout</a>
+                </nav>
+            </div>
+            <div class="main-content">
+                <div class="topbar">
+                    <h1>👤 My Profile</h1>
+                    <p>Gazali International School</p>
+                </div>
+
+                <div class="section">
+                    <div id="view-mode">
+                        <div class="profile-card">
+                            <div class="profile-avatar">
+                                <img id="avatar-img" src="" onerror="this.style.display='none';document.getElementById('avatar-placeholder').style.display='block'" style="width:120px;height:120px;border-radius:16px;object-fit:cover;display:none">
+                                <div id="avatar-placeholder" style="font-size:80px">👤</div>
+                            </div>
+                            <div class="profile-info">
+                                <table class="timetable">
+                                    <tr><td><b>Full Name</b></td><td id="p-name">—</td></tr>
+                                    <tr><td><b>Email</b></td><td id="p-email">—</td></tr>
+                                    <tr><td><b>Phone</b></td><td id="p-phone">—</td></tr>
+                                    <tr><td><b>Subject</b></td><td id="p-subject">—</td></tr>
+                                    <tr><td><b>Class Teacher</b></td><td id="p-class">—</td></tr>
+                                </table>
+                                <button onclick="showEditMode()" class="login-btn" style="margin-top:20px;width:auto;padding:10px 24px">✏️ Edit Profile</button>
+                                <button onclick="showPasswordMode()" class="login-btn" style="margin-top:10px;width:auto;padding:10px 24px;background:#e05c7a">🔒 Change Password</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="edit-mode" style="display:none">
+                        <h2 style="margin-bottom:20px">✏️ Edit Profile</h2>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="edit-name" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="text" id="edit-phone" placeholder="Enter your phone number">
+                        </div>
+                        <div class="form-group">
+                            <label>Subject Specialization</label>
+                            <select id="edit-subject">
+                                <option value="">-- Select Subject --</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="English">English</option>
+                                <option value="Science">Science</option>
+                                <option value="Islamic Studies">Islamic Studies</option>
+                                <option value="Arabic">Arabic</option>
+                                <option value="History">History</option>
+                                <option value="Geography">Geography</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Class Teacher Of</label>
+                            <select id="edit-class">
+                                <option value="">-- Select Class --</option>
+                                <option value="1A">Grade 1A</option>
+                                <option value="1B">Grade 1B</option>
+                                <option value="2A">Grade 2A</option>
+                                <option value="2B">Grade 2B</option>
+                                <option value="3A">Grade 3A</option>
+                                <option value="3B">Grade 3B</option>
+                                <option value="4A">Grade 4A</option>
+                                <option value="4B">Grade 4B</option>
+                                <option value="5A">Grade 5A</option>
+                                <option value="5B">Grade 5B</option>
+                                <option value="6A">Grade 6A</option>
+                                <option value="6B">Grade 6B</option>
+                                <option value="7A">Grade 7A</option>
+                                <option value="7B">Grade 7B</option>
+                                <option value="8A">Grade 8A</option>
+                                <option value="8B">Grade 8B</option>
+                                <option value="9A">Grade 9A</option>
+                                <option value="9B">Grade 9B</option>
+                                <option value="10A">Grade 10A</option>
+                                <option value="10B">Grade 10B</option>
+                                <option value="11A">Grade 11A</option>
+                                <option value="11B">Grade 11B</option>
+                                <option value="12A">Grade 12A</option>
+                                <option value="12B">Grade 12B</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Profile Picture</label>
+                            <input type="file" id="edit-avatar" accept="image/*">
+                        </div>
+                        <div style="display:flex;gap:12px">
+                            <button onclick="saveProfile()" class="login-btn" style="width:auto;padding:10px 24px">💾 Save</button>
+                            <button onclick="hideEditMode()" style="padding:10px 24px;border:1.5px solid #e2e8f7;border-radius:8px;background:white;cursor:pointer;font-family:inherit;font-size:14px">Cancel</button>
+                        </div>
+                        <p id="profile-msg" style="margin-top:12px"></p>
+                    </div>
+
+                    <div id="password-mode" style="display:none">
+                        <h2 style="margin-bottom:20px">🔒 Change Password</h2>
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" id="current-password" placeholder="Enter current password">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" id="new-password" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" id="confirm-password" placeholder="Confirm new password">
+                        </div>
+                        <div style="display:flex;gap:12px">
+                            <button onclick="changePassword()" class="login-btn" style="width:auto;padding:10px 24px">💾 Save</button>
+                            <button onclick="hidePasswordMode()" style="padding:10px 24px;border:1.5px solid #e2e8f7;border-radius:8px;background:white;cursor:pointer;font-family:inherit;font-size:14px">Cancel</button>
+                        </div>
+                        <p id="password-msg" style="margin-top:12px"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            let currentUser = null;
+
+            async function loadProfile() {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) { window.location.href = 'login.html'; return; }
+                currentUser = user;
+
+                document.getElementById('p-email').textContent = user.email;
+
+                const { data: teacher } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (teacher) {
+                    document.getElementById('p-name').textContent = teacher.full_name || '—';
+                    document.getElementById('p-phone').textContent = teacher.phone || '—';
+                    document.getElementById('p-subject').textContent = teacher.subject_specialization || '—';
+                    document.getElementById('p-class').textContent = teacher.class_teacher ? 'Grade ' + teacher.class_teacher : '—';
+
+                    if (teacher.photo_url) {
+                        document.getElementById('avatar-img').src = teacher.photo_url;
+                        document.getElementById('avatar-img').style.display = 'block';
+                        document.getElementById('avatar-placeholder').style.display = 'none';
+                    }
+
+                    document.getElementById('edit-name').value = teacher.full_name || '';
+                    document.getElementById('edit-phone').value = teacher.phone || '';
+                    document.getElementById('edit-subject').value = teacher.subject_specialization || '';
+                    document.getElementById('edit-class').value = teacher.class_teacher || '';
+                }
+            }
+
+            function showEditMode() {
+                document.getElementById('view-mode').style.display = 'none';
+                document.getElementById('edit-mode').style.display = 'block';
+            }
+
+            function hideEditMode() {
+                document.getElementById('edit-mode').style.display = 'none';
+                document.getElementById('view-mode').style.display = 'block';
+            }
+
+            function showPasswordMode() {
+                document.getElementById('view-mode').style.display = 'none';
+                document.getElementById('password-mode').style.display = 'block';
+            }
+
+            function hidePasswordMode() {
+                document.getElementById('password-mode').style.display = 'none';
+                document.getElementById('view-mode').style.display = 'block';
+            }
+
+            async function saveProfile() {
+                const name = document.getElementById('edit-name').value;
+                const phone = document.getElementById('edit-phone').value;
+                const subject = document.getElementById('edit-subject').value;
+                const cls = document.getElementById('edit-class').value;
+                const avatarInput = document.getElementById('edit-avatar');
+                const avatarFile = avatarInput.files[0];
+
+                document.getElementById('profile-msg').textContent = '⏳ Saving...';
+
+                let photoUrl = null;
+
+                if (avatarFile) {
+                    const fileName = currentUser.id + '_avatar_' + Date.now();
+                    const { error: uploadError } = await db.storage
+                        .from('avatars')
+                        .upload(fileName, avatarFile, { upsert: true });
+
+                    if (uploadError) {
+                        document.getElementById('profile-msg').textContent = '❌ Photo upload failed: ' + uploadError.message;
+                        return;
+                    }
+
+                    const { data: urlData } = db.storage.from('avatars').getPublicUrl(fileName);
+                    photoUrl = urlData.publicUrl;
+                }
+
+                const updateData = {
+                    full_name: name,
+                    phone: phone,
+                    subject_specialization: subject,
+                    class_teacher: cls
+                };
+
+                if (photoUrl) updateData.photo_url = photoUrl;
+
+                const { error } = await db
+                    .from('users')
+                    .update(updateData)
+                    .eq('id', currentUser.id);
+
+                if (error) {
+                    document.getElementById('profile-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('profile-msg').textContent = '✅ Profile saved!';
+                    document.getElementById('p-name').textContent = name;
+                    document.getElementById('p-phone').textContent = phone;
+                    document.getElementById('p-subject').textContent = subject;
+                    document.getElementById('p-class').textContent = cls ? 'Grade ' + cls : '—';
+                    if (photoUrl) {
+                        document.getElementById('avatar-img').src = photoUrl;
+                        document.getElementById('avatar-img').style.display = 'block';
+                        document.getElementById('avatar-placeholder').style.display = 'none';
+                    }
+
+                    const updatedUser = { ...currentUser, full_name: name, class_teacher: cls };
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+
+                    setTimeout(() => hideEditMode(), 1000);
+                }
+            }
+
+            async function changePassword() {
+                const current = document.getElementById('current-password').value;
+                const newPass = document.getElementById('new-password').value;
+                const confirm = document.getElementById('confirm-password').value;
+
+                if (!current || !newPass || !confirm) {
+                    document.getElementById('password-msg').textContent = '⚠️ Please fill in all fields!';
+                    return;
+                }
+
+                if (newPass !== confirm) {
+                    document.getElementById('password-msg').textContent = '❌ Passwords do not match!';
+                    return;
+                }
+
+                if (newPass.length < 6) {
+                    document.getElementById('password-msg').textContent = '❌ Password must be at least 6 characters!';
+                    return;
+                }
+
+                const { data: check } = await db
+                    .from('users')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .eq('password', current)
+                    .single();
+
+                if (!check) {
+                    document.getElementById('password-msg').textContent = '❌ Current password is wrong!';
+                    return;
+                }
+
+                const { error } = await db
+                    .from('users')
+                    .update({ password: newPass })
+                    .eq('id', currentUser.id);
+
+                if (error) {
+                    document.getElementById('password-msg').textContent = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('password-msg').textContent = '✅ Password changed!';
+                    setTimeout(() => hidePasswordMode(), 1500);
+                }
+            }
+
+            loadProfile();
+        </script>
+    </body>
+</html>
