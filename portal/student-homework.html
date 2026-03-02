@@ -116,7 +116,7 @@
                     files.forEach(f => {
                         const isRead = readIds.includes(f.id);
                         const dateStr = new Date(f.created_at).toLocaleDateString('en-GB').replace(/\//g, '-');
-                        html += `<a href="${f.url}" target="_self" class="file-item" onclick="markRead('${f.id}', '${user.id}')">
+                        html += `<a href="https://docs.google.com/viewer?url=${encodeURIComponent(f.url)}" target="_self" class="file-item" onclick="markRead('${f.id}', '${user.id}')">
                             <div class="file-date-badge">${dateStr}</div>
                             ${f.subject ? `<span class="file-subject-tag">${f.subject}</span>` : ''}
                             <div class="file-name ${isRead ? 'read' : 'unread'}">${f.name}</div>
